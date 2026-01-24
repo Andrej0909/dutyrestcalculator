@@ -51,6 +51,15 @@
             text-align: center;
             margin: 0px;
             }
+
+        .time-controls {
+            display: flex;
+            align-items: center;
+            height: 100%;
+            width: 100%;
+            position: relative;
+            overflow: hidden; /* Biztosítja, hogy semmi ne lógjon ki a cellából */
+        }
      
 
     </style>
@@ -63,7 +72,7 @@
     <tr>
         <td>Time Zone</td>
         <td>
-            <div style="display: flex; align-items: center; height: 100%; width: 100%; position: relative;">
+            <div class="time-controls">
             <button type="button" id="adjusttimezoneminus" onclick="adjusttimezone(-1)">−</button>
             <input type="number" id="timezone" value="0" min="-12" max="12" placeholder="Enter Timezone">
             <button type="button" id="adjusttimezoneplus" onclick="adjusttimezone(1)">+</button>
@@ -71,7 +80,7 @@
         </td>
         <td>Sector</td>
         <td>
-            <div style="display: flex; align-items: center; height: 100%; width: 100%; position: relative;">
+            <div class="time-controls">
             <button type="button" id="adjustsectorminus" onclick="adjustsector(-1)">−</button>
             <input type="number" id="sector" min="1" max="4" value="4">
             <button type="button" id="adjustsectorplus" onclick="adjustsector(1)">+</button>
@@ -95,7 +104,7 @@
         <td>Report time</td>
 
         <td>
-            <div style="display: flex; align-items: center; height: 100%; width: 100%; position: relative;">
+            <div class="time-controls">
             <button type="button" onclick="adjustreportutc(-1)">−</button>
             <input type="text" id="reportutc" value="00:00" maxlength="5" class="time-input">
             <button type="button" onclick="adjustreportutc(1)">+</button>
@@ -103,26 +112,26 @@
         </td>
 
         <td>
-            <div style="display: flex; align-items: center; height: 100%; width: 100%; position: relative;">
+            <div class="time-controls">
             <button type="button" onclick="adjustreportlocal(-1)">−</button>
             <input type="text" id="reportlocal" value="00:00" maxlength="5" class="time-input">
             <button type="button" onclick="adjustreportlocal(1)">+</button>
             </div>
         </td>
 
-        <td style="position: relative; vertical-align: middle; height: 50px;">
+        <td style="position: relative; vertical-align: middle;">
             <span style="position: absolute; top: 2px; left: 0; width: 100%; text-align: center; font-size: 11px; color: #666;">
                 Pre-flight duty
             </span>
             
-            <span id="cell24" style="display: block; margin-top: 5px;">1:00</span>
+            <span id="cell24" style="display: block; margin-top: 10px;">1:00</span>
         </td>
     </tr>
  <!-- Harmadik sora a táblázatnak  -->
     <tr>
         <td>1 OFF</td>
         <td>
-            <div style="display: flex; align-items: center; height: 100%; width: 100%; position: relative;">
+            <div class="time-controls">
             <button type="button" onclick="adjust1offutc(-1)">−</button>
             <input type="text" id="1offutc" value="01:00" maxlength="5" class="time-input">
             <button type="button" onclick="adjust1offutc(1)">+</button>
@@ -137,7 +146,7 @@
     <tr>
         <td>1 ON</td>
         <td>
-            <div style="display: flex; align-items: center; height: 100%; width: 100%; position: relative;">
+            <div class="time-controls">
             <button type="button" onclick="adjust1onutc(-1)">−</button>
             <input type="text" id="1onutc" value="02:00" maxlength="5" class="time-input">
             <button type="button" onclick="adjust1onutc(1)">+</button>
@@ -146,7 +155,7 @@
 
         <td id="cell43"></td>
         <td>
-            <div style="display: flex; align-items: center; height: 100%; width: 100%; position: relative;">
+            <div class="time-controls">
             <button type="button" onclick="adjustturn1(-1)">−</button>
             <input type="text" id="turn1" value="00:30" maxlength="5" class="time-input">
             <button type="button" onclick="adjustturn1(1)">+</button>
@@ -158,7 +167,7 @@
     <tr>
         <td>2 OFF</td>
         <td>
-            <div style="display: flex; align-items: center; height: 100%; width: 100%; position: relative;">
+            <div class="time-controls">
             <button type="button" onclick="adjust2offutc(-1)">−</button>
             <input type="text" id="2offutc" value="02:30" maxlength="5" class="time-input">
             <button type="button" onclick="adjust2offutc(1)">+</button>
@@ -173,7 +182,7 @@
     <tr>
         <td>2 ON</td>
         <td>
-            <div style="display: flex; align-items: center; height: 100%; width: 100%; position: relative;">
+            <div class="time-controls">
             <button type="button" onclick="adjust2onutc(-1)">−</button>
             <input type="text" id="2onutc" value="03:30" maxlength="5" class="time-input">
             <button type="button" onclick="adjust2onutc(1)">+</button>
@@ -182,7 +191,7 @@
 
         <td id="cell63"></td>
         <td>
-            <div style="display: flex; align-items: center; height: 100%; width: 100%; position: relative;">
+            <div class="time-controls">
             <button type="button" onclick="adjustturn2(-1)">−</button>
             <input type="text" id="turn2" value="00:30" maxlength="5" class="time-input">
             <button type="button" onclick="adjustturn2(1)">+</button>
@@ -193,7 +202,7 @@
     <tr>
         <td>3 OFF</td>
         <td>
-            <div style="display: flex; align-items: center; height: 100%; width: 100%; position: relative;">
+            <div class="time-controls">
             <button type="button" onclick="adjust3offutc(-1)">−</button>
             <input type="text" id="3offutc" value="04:00" maxlength="5" class="time-input">
             <button type="button" onclick="adjust3offutc(1)">+</button>
@@ -208,7 +217,7 @@
     <tr>
         <td>3 ON</td>
         <td>
-            <div style="display: flex; align-items: center; height: 100%; width: 100%; position: relative;">
+            <div class="time-controls">
             <button type="button" onclick="adjust3onutc(-1)">−</button>
             <input type="text" id="3onutc" value="05:00" maxlength="5" class="time-input">
             <button type="button" onclick="adjust3onutc(1)">+</button>
@@ -217,7 +226,7 @@
 
         <td id="cell83"></td>
         <td>
-            <div style="display: flex; align-items: center; height: 100%; width: 100%; position: relative;">
+            <div class="time-controls">
             <button type="button" onclick="adjustturn3(-1)">−</button>
             <input type="text" id="turn3" value="00:30" maxlength="5" class="time-input">
             <button type="button" onclick="adjustturn3(1)">+</button>
@@ -228,7 +237,7 @@
     <tr>
         <td>4 OFF</td>
         <td>
-            <div style="display: flex; align-items: center; height: 100%; width: 100%; position: relative;">
+            <div class="time-controls">
             <button type="button" onclick="adjust4offutc(-1)">−</button>
             <input type="text" id="4offutc" value="05:30" maxlength="5" class="time-input">
             <button type="button" onclick="adjust4offutc(1)">+</button>
@@ -243,7 +252,7 @@
     <tr>
         <td>4 ON</td>
         <td>
-            <div style="display: flex; align-items: center; height: 100%; width: 100%; position: relative;">
+            <div class="time-controls">
             <button type="button" onclick="adjust4onutc(-1)">−</button>
             <input type="text" id="4onutc" value="06:30"maxlength="5" class="time-input">
             <button type="button" onclick="adjust4onutc(1)">+</button>
@@ -256,7 +265,7 @@
             <span style="position: absolute; top: 2px; left: 0; width: 100%; text-align: center; font-size: 12px; color: #666;">
                 Post flight duty
             </span>
-            <div style="margin-top: 10px;">0:30</div>
+            <div style="margin-top: 13px;">0:30</div>
         </td>
 
     </tr>
@@ -276,12 +285,12 @@
         <td>Duty end</td>
         <td id="cell112"></td>
         <td id="cell113"></td>
-        <td style="position: relative; vertical-align: middle; height: 50px;">
+        <td style="position: relative; vertical-align: middle;">
             <span style="position: absolute; top: 2px; left: 0; width: 100%; text-align: center; font-size: 11px; color: #666;">
                 Travel time
             </span>
             
-            <span id="cell114" style="display: block; margin-top: 5px;">0:30</span>
+            <span id="cell114" style="display: block; margin-top: 10px;">0:30</span>
         </td>     
     </tr>
 
@@ -290,7 +299,7 @@
         <td>Arriving to hotel</td>
         <td id="cell122"></td>
         <td>
-            <div style="display: flex; align-items: center; height: 100%; width: 100%; position: relative;">
+            <div class="time-controls">
             <button type="button" onclick="adjusthotellocal(-1)">−</button>
             <input type="text" id="hotellocal" value="07:30" maxlength="5" class="time-input">
             <button type="button" onclick="adjusthotellocal(1)">+</button>
@@ -315,9 +324,9 @@
             <div id="normalremaining_local" style="font-size: 11px; height: 50%; color: blue; border-bottom: 1px solid #ddd; line-height: 20px;"></div>
             <div id="normallimit_local" style="font-size: 20px; height: 50%; line-height: 25px;"></div>
         </td>
-        <td style="position: relative; vertical-align: middle; height: 50px;">
+        <td style="position: relative; vertical-align: middle;">
             <span style="position: absolute; top: 2px; left: 0; width: 100%; text-align: center; font-size: 11px; color: #666;">Max FDP</span>
-            <span id="cell134" style="display: block; margin-top: 5px;"></span>
+            <span id="cell134" style="display: block; margin-top: 10px;"></span>
         </td>
     </tr>
 <!-- Első sora a táblázatnak (14)-->
