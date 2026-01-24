@@ -17,7 +17,7 @@
             }
 
         table {
-            width: 90vw;
+            width: 95vw;
             margin: 0 auto;
             table-layout: fixed;
             border-collapse: collapse;   
@@ -25,7 +25,7 @@
 
         th, td {
             border: 3px solid #ddd;
-            height: 40px;
+            height: 38px;
             width: 25%;
             padding: 0;
             text-align: center;
@@ -38,13 +38,8 @@
             text-align: center;
             background-color: #e0f3ff;
             border: 3px solid #2b2b2b;
-            }
-
-        .button-container {
-            display: flex;
-            justify-content: center; /* Align buttons to the center */
-            gap: 20px; /* Space between the buttons */
-            margin-top: 20px; /* Space above the buttons */
+            margin: 0;
+            padding: 0;
             }
 
         button {
@@ -54,31 +49,14 @@
             width: 25%;
             padding: 0;
             text-align: center;
+            margin: 0px;
             }
-
-        .button2 {   
-            height: 60px;  
-            width: 23vw;
-            }
-      
-        .diff-box {     /*LMC láthatatlan mező a piros kiírással*/
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            height: 50%;
-            font-size: 18px;
-            border: transparent;
-            color: red;
-            background: transparent;
-            display: inline;
-            pointer-events: none;
-            text-align: right;
-            }
+     
 
     </style>
 </head>
 <body>
-    <h1>Duty/Rest Calculator<span id="result"></span></h1>
+    <h1>Duty/Rest Calculator</h1>
 <!-- ELSŐ TÁBLA -->
 <!-- Első sora a táblázatnak -->
 <table>
@@ -377,9 +355,13 @@
 </table>   
 <p></p> 
 
-<!-- Alsó gombok -->
-<div class="button-container">
-    <button class="button2" type="button" onclick="resetFields()">Reset</button>
+<!-- Alsó reset gomb -->
+<div style="display: flex; justify-content: center; margin-top: 20px; margin-bottom: 5px;">
+    <button type="button" 
+            onclick="resetFields()" 
+            style="height: 50px; width: 25vw; min-width: 150px; font-size: 20px; font-weight: bold; cursor: pointer; border: 3px solid #2b2b2b; background-color: #f8f9fa; border-radius: 8px;">
+        Reset
+    </button>
 </div>
 
 
