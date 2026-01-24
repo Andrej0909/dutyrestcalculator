@@ -60,8 +60,28 @@
             position: relative;
             overflow: hidden; /* Biztosítja, hogy semmi ne lógjon ki a cellából */
         }
-     
 
+        input:disabled {
+            background-color: #f0f0f0 !important; /* Szürke háttér */
+            color: #999;
+            border-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        button:disabled {
+            color: #ccc;
+            background-color: #f8f8f8;
+            cursor: not-allowed;
+            border-color: #ddd;
+        }
+
+        /* Amikor egy mező "rejtett" */
+        .hidden-value {
+            color: transparent !important;
+            background-color: #f9f9f9 !important; /* Enyhe szürke, hogy látszódjon: ott nincs bevitel */
+            border-color: #eee !important;
+        }
+     
     </style>
 </head>
 <body>
@@ -198,6 +218,7 @@
             </div>
         </td>       
     </tr>
+
 <!-- Hetedik sora a táblázatnak  -->
     <tr>
         <td>3 OFF</td>
@@ -233,6 +254,7 @@
             </div>
         </td>       
     </tr>
+
 <!-- Kilencedik sora a táblázatnak  -->
     <tr>
         <td>4 OFF</td>
@@ -269,16 +291,13 @@
         </td>
 
     </tr>
-        
 
-<tr style="height: 12px !important; background-color: #f2f2f2; line-height: 12px;">
-    <td colspan="4" style="height: 12px !important; font-size: 10px; color: #474747; padding: 0; border: 1px solid #ddd;">
-        ---------------------- FDP end ---------------------------------   FDP end ---------------------------------  FDP end ---------------------- 
-    </td>
-</tr>
-
-
-
+    <!------ FDP end --------------- -->        
+    <tr style="height: 12px !important; background-color: #f2f2f2; line-height: 12px;">
+        <td colspan="4" style="height: 12px !important; font-size: 10px; color: #474747; padding: 0; border: 1px solid #ddd;">
+            ---------------------- FDP end ---------------------------------   FDP end ---------------------------------  FDP end ---------------------- 
+        </td>
+    </tr>
 
     <!-- Tizenegyedik sora a táblázatnak -->
     <tr>
@@ -480,7 +499,59 @@
         let tz = parseInt(document.getElementById('timezone').value) || 0;
         return tz * 60;
     }
+
+    function updateSectorVisibility() {
+    const sectors = parseInt(document.getElementById('sector').value) || 1;
+
+    // Mezők és cellák csoportjai
+    const s2Fields = ['2offutc', '2onutc', 'turn1', 'cell53', 'cell63'];
+    const s3Fields = ['3offutc', '3onutc', 'turn2', 'cell73', 'cell83'];
+    const s4Fields = ['4offutc', '4onutc', 'turn3', 'cell93', 'cell103'];
+
+    const processGroup = (fields, blockCellId, isVisible) => {
+        // 1. Az összes felsorolt mező (Inputok és Local Time cellák) kezelése
+        fields.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+
+            // Vizuális eltüntetés és tiltás
+            el.style.opacity = isVisible ? "1" : "0";
+            if (el.tagName === 'INPUT') {
+                el.disabled = !isVisible;
+                // Ha turn típusú input és nem látható, nullázzuk a matek miatt
+                if (!isVisible && id.startsWith('turn')) {
+                    el.value = "00:00";
+                }
+            }
+
+            // A gombok elrejtése az input mellett (ha van .time-controls szülő)
+            const container = el.closest('.time-controls');
+            if (container) {
+                container.style.opacity = isVisible ? "1" : "0";
+                const buttons = container.querySelectorAll('button');
+                buttons.forEach(btn => btn.disabled = !isVisible);
+            }
+        });
+
+        // 2. A Blokkidő cella (cell54, 74, 94) kezelése
+        const bCell = document.getElementById(blockCellId);
+        if (bCell) {
+            bCell.style.opacity = isVisible ? "1" : "0";
+            if (!isVisible) bCell.textContent = "00:00";
+        }
+    };
+
+    // Futtatás a kiválasztott szektorszám alapján
+    processGroup(s2Fields, 'cell54', sectors >= 2);
+    processGroup(s3Fields, 'cell74', sectors >= 3);
+    processGroup(s4Fields, 'cell94', sectors >= 4);
+
+    // Végül minden kalkuláció frissítése
+    calculateall();
+}
    
+
+
 
     //SZÁMÍTÁSI FÜGGVÉNYEK SZÁMÍTÁSI FÜGGVÉNYEK SZÁMÍTÁSI FÜGGVÉNYEK SZÁMÍTÁSI FÜGGVÉNYEK SZÁMÍTÁSI FÜGGVÉNYEK 
     // Ha a reportUTC változik -> Számoljuk a reportLocal-t (UTC + TZ)
@@ -568,95 +639,12 @@
 
     }
 
-    function calculatemaxfdp() {
-        const reportLocalStr = document.getElementById('reportlocal').value;
-        const reportMin = timeToMinutes(reportLocalStr);
-        const sectors = parseInt(document.getElementById('sector').value) || 1;
-
-        // Szektor index: 1-2 -> 0, 3 -> 1, 4 -> 2
-        const sectorIdx = (sectors <= 2) ? 0 : (sectors === 3 ? 1 : 2);
-
-        // Megkeressük a szabályt (mivel a táblázat teljes, mindig lesz találat)
-        const rule = fdpRules.find(r => reportMin >= r.start && reportMin <= r.end);
-
-        // Kinyerjük a perceket és kiírjuk a cellába
-        const limitInMinutes = rule.limits[sectorIdx];
-        document.getElementById('cell134').textContent = minutesToTime(limitInMinutes);
-
-        return limitInMinutes;
+    function calculatesector() {
+        calculatemaxfdp();
+        calculatefdpend();
+        calculateminrest();
+        updateSectorVisibility();
     }
-
-    function calculatefdpend() {
-    // 1. Alapadatok beolvasása
-    const reportUtc = timeToMinutes(document.getElementById('reportutc').value);
-    const on4Utc = timeToMinutes(document.getElementById('4onutc').value);
-    const tz = tzToMinutes();
-    
-    // 2. Max FDP limit lekérése (Percben)
-    const maxFdpMin = calculatemaxfdp(); 
-
-    // --- NORMÁL FDP SZÁMÍTÁSA (13. sor) ---
-    const latestUtc = reportUtc + maxFdpMin;
-    const latestLocal = latestUtc + tz;
-
-    document.getElementById('normallimit_utc').textContent = minutesToTime(latestUtc);
-    document.getElementById('normallimit_local').textContent = minutesToTime(latestLocal);
-
-    const diff = latestUtc - on4Utc;
-    const sign = diff >= 0 ? "+" : "-";
-    const remainingText = sign + minutesToTime(Math.abs(diff)) + " ramaining";
-    
-    document.getElementById('normalremaining_utc').textContent = remainingText;
-    document.getElementById('normalremaining_local').textContent = remainingText;
-    document.getElementById('normalremaining_utc').style.color = diff >= 0 ? "blue" : "red";
-    document.getElementById('normalremaining_local').style.color = diff >= 0 ? "blue" : "red";
-
-    // --- EXTENSION SZÁMÍTÁSA (14. sor: +120 perc) ---
-    const extUtc = latestUtc + 120;
-    const extLocal = extUtc + tz;
-
-    document.getElementById('extlimit_utc').textContent = minutesToTime(extUtc);
-    document.getElementById('extlimit_local').textContent = minutesToTime(extLocal);
-
-    const extDiff = extUtc - on4Utc;
-    const extSign = extDiff >= 0 ? "+" : "-";
-    const extRemainingText = extSign + minutesToTime(Math.abs(extDiff)) + " ramaining";
-
-    document.getElementById('extremaining_utc').textContent = extRemainingText;
-    document.getElementById('extremaining_local').textContent = extRemainingText;
-    document.getElementById('extremaining_utc').style.color = extDiff >= 0 ? "blue" : "red";
-    document.getElementById('extremaining_local').style.color = extDiff >= 0 ? "blue" : "red";
-}
-
-
-function calculateminrest() {
-    // 1. Adatok kinyerése
-    const reportUtc = timeToMinutes(document.getElementById('reportutc').value);
-    const dutyEndUtc = timeToMinutes(document.getElementById('cell112').textContent);
-    const travelTime = timeToMinutes(document.getElementById('cell114').textContent);
-    const tz = tzToMinutes();
-    // 2. Alap rest kiszámítása (Duty Period hossza)
-    let dutyDuration = dutyEndUtc - reportUtc;
-    // 3. Travel time büntetés: a 30 perc feletti rész kétszerese
-    let travelPenalty = 0;
-    if (travelTime > 30) {
-        travelPenalty = (travelTime - 30) * 2;
-    }
-    // 4. Összegzés és a 10 órás (600 perc) minimum ellenőrzése
-    let totalRestMin = dutyDuration + travelPenalty;
-    if (totalRestMin < 600) {
-        totalRestMin = 600;
-    }
-    // 5. Mikor kezdődhet a következő szolgálat? (Duty End + Rest)
-    const nextReportUtc = dutyEndUtc + totalRestMin;
-    const nextReportLocal = nextReportUtc + tz;
-    // 6. Megjelenítés
-    document.getElementById('cell154').textContent = minutesToTime(totalRestMin);
-    document.getElementById('cell152').textContent = minutesToTime(nextReportUtc);
-    document.getElementById('cell153').textContent = minutesToTime(nextReportLocal);
-}
-
-
 
     // Ha a reportLocal változik -> Számoljuk a reportUTC-t (Local - TZ)
     function calculatereportlocal() {
@@ -746,50 +734,102 @@ function calculateminrest() {
         calculateall();
     }
 
+    function calculatemaxfdp() {
+        const reportLocalStr = document.getElementById('reportlocal').value;
+        const reportMin = timeToMinutes(reportLocalStr);
+        const sectors = parseInt(document.getElementById('sector').value) || 1;
+
+        // Szektor index: 1-2 -> 0, 3 -> 1, 4 -> 2
+        const sectorIdx = (sectors <= 2) ? 0 : (sectors === 3 ? 1 : 2);
+
+        // Megkeressük a szabályt (mivel a táblázat teljes, mindig lesz találat)
+        const rule = fdpRules.find(r => reportMin >= r.start && reportMin <= r.end);
+
+        // Kinyerjük a perceket és kiírjuk a cellába
+        const limitInMinutes = rule.limits[sectorIdx];
+        document.getElementById('cell134').textContent = minutesToTime(limitInMinutes);
+
+        return limitInMinutes;
+    }
+
+    function calculatefdpend() {
+        // 1. Alapadatok beolvasása
+        const reportUtc = timeToMinutes(document.getElementById('reportutc').value);
+        const on4Utc = timeToMinutes(document.getElementById('4onutc').value);
+        const tz = tzToMinutes();
+        
+        // 2. Max FDP limit lekérése (Percben)
+        const maxFdpMin = calculatemaxfdp(); 
+
+        // --- NORMÁL FDP SZÁMÍTÁSA (13. sor) ---
+        const latestUtc = reportUtc + maxFdpMin;
+        const latestLocal = latestUtc + tz;
+
+        document.getElementById('normallimit_utc').textContent = minutesToTime(latestUtc);
+        document.getElementById('normallimit_local').textContent = minutesToTime(latestLocal);
+
+        const diff = latestUtc - on4Utc;
+        const sign = diff >= 0 ? "+" : "-";
+        const remainingText = sign + minutesToTime(Math.abs(diff)) + " ramaining";
+        
+        document.getElementById('normalremaining_utc').textContent = remainingText;
+        document.getElementById('normalremaining_local').textContent = remainingText;
+        document.getElementById('normalremaining_utc').style.color = diff >= 0 ? "blue" : "red";
+        document.getElementById('normalremaining_local').style.color = diff >= 0 ? "blue" : "red";
+
+        // --- EXTENSION SZÁMÍTÁSA (14. sor: +120 perc) ---
+        const extUtc = latestUtc + 120;
+        const extLocal = extUtc + tz;
+
+        document.getElementById('extlimit_utc').textContent = minutesToTime(extUtc);
+        document.getElementById('extlimit_local').textContent = minutesToTime(extLocal);
+
+        const extDiff = extUtc - on4Utc;
+        const extSign = extDiff >= 0 ? "+" : "-";
+        const extRemainingText = extSign + minutesToTime(Math.abs(extDiff)) + " ramaining";
+
+        document.getElementById('extremaining_utc').textContent = extRemainingText;
+        document.getElementById('extremaining_local').textContent = extRemainingText;
+        document.getElementById('extremaining_utc').style.color = extDiff >= 0 ? "blue" : "red";
+        document.getElementById('extremaining_local').style.color = extDiff >= 0 ? "blue" : "red";
+    }
+
+
+    function calculateminrest() {
+        // 1. Adatok kinyerése
+        const reportUtc = timeToMinutes(document.getElementById('reportutc').value);
+        const dutyEndUtc = timeToMinutes(document.getElementById('cell112').textContent);
+        const travelTime = timeToMinutes(document.getElementById('cell114').textContent);
+        const tz = tzToMinutes();
+        // 2. Alap rest kiszámítása (Duty Period hossza)
+        let dutyDuration = dutyEndUtc - reportUtc;
+        // 3. Travel time büntetés: a 30 perc feletti rész kétszerese
+        let travelPenalty = 0;
+        if (travelTime > 30) {
+            travelPenalty = (travelTime - 30) * 2;
+        }
+        // 4. Összegzés és a 10 órás (600 perc) minimum ellenőrzése
+        let totalRestMin = dutyDuration + travelPenalty;
+        if (totalRestMin < 600) {
+            totalRestMin = 600;
+        }
+        // 5. Mikor kezdődhet a következő szolgálat? (Duty End + Rest)
+        const nextReportUtc = dutyEndUtc + totalRestMin;
+        const nextReportLocal = nextReportUtc + tz;
+        // 6. Megjelenítés
+        document.getElementById('cell154').textContent = minutesToTime(totalRestMin);
+        document.getElementById('cell152').textContent = minutesToTime(nextReportUtc);
+        document.getElementById('cell153').textContent = minutesToTime(nextReportLocal);
+    }
+
 
     function resetFields() {
         document.getElementById('timezone').value = '0';
         document.getElementById('reportutc').value = '00:00';
         document.getElementById('sector').value = '4';
-        calculateall();
-        }
+        updateSectorVisibility();
+    }
 
-    
-
-    /*//Gombok és mezők ki/be kapcsolása
-    function disableButtons() {
-        document.getElementById('adjustpcsplus').disabled = true; 
-        document.getElementById('adjustpcsminus').disabled = true; 
-        document.getElementById('pcsvalue').disabled = true;
-        document.getElementById('kgvalue').disabled = true;
-        document.getElementById('adjustpercent1plus').disabled = true; 
-        document.getElementById('adjustpercent1minus').disabled = true; 
-        document.getElementById('percent1').disabled = true;
-        document.getElementById('adjustpercent4plus').disabled = true; 
-        document.getElementById('adjustpercent4minus').disabled = true; 
-        document.getElementById('percent4').disabled = true;
-        document.getElementById('adjustpcs3plus').disabled = false; 
-        document.getElementById('adjustpcs3minus').disabled = false; 
-        document.getElementById('pcs3value').disabled = false;
-        }
-    
-    function enableButtons() {
-        document.getElementById('adjustpcsplus').disabled = false; 
-        document.getElementById('adjustpcsminus').disabled = false; 
-        document.getElementById('pcsvalue').disabled = false;
-        document.getElementById('kgvalue').disabled = false;
-        document.getElementById('adjustpercent1plus').disabled = false; 
-        document.getElementById('adjustpercent1minus').disabled = false; 
-        document.getElementById('percent1').disabled = false;
-        document.getElementById('adjustpercent4plus').disabled = false; 
-        document.getElementById('adjustpercent4minus').disabled = false; 
-        document.getElementById('percent4').disabled = false;
-        document.getElementById('adjustpcs3plus').disabled = true; 
-        document.getElementById('adjustpcs3minus').disabled = true; 
-        document.getElementById('pcs3value').disabled = true;
-        }
-    */
-    
 
     //A GOMBOKHOZ TARTOZÓ FÜGGVÉNYEK
     function adjusttimezone(change) {
@@ -812,6 +852,7 @@ function calculateminrest() {
         calculatemaxfdp();
         calculatefdpend();
         calculateminrest();
+        updateSectorVisibility();
     }
 
     function adjustreportutc(change) {
@@ -927,29 +968,25 @@ function calculateminrest() {
     }
     
 
-
-    
-
+    // A Timezone változásakor is fusson le a számítás (mivel az befolyásolja az időt)
+    document.getElementById('timezone').addEventListener('input', calculateall);
+    document.getElementById('sector').addEventListener('input', calculatemaxfdp, calculatesector,calculateall);
 
     // Add event listeners to each input field to trigger calculation on change
     document.getElementById('reportutc').addEventListener('blur', calculateall);
     document.getElementById('reportlocal').addEventListener('blur', calculatereportlocal);
     document.getElementById('1offutc').addEventListener('blur', calculate1offutc);
     document.getElementById('1onutc').addEventListener('blur', calculate1onutc);
+    document.getElementById('turn1').addEventListener('blur', calculateall);
     document.getElementById('2offutc').addEventListener('blur', calculate2offutc);
     document.getElementById('2onutc').addEventListener('blur', calculate2onutc);
+    document.getElementById('turn2').addEventListener('blur', calculateall);
     document.getElementById('3offutc').addEventListener('blur', calculate3offutc);
     document.getElementById('3onutc').addEventListener('blur', calculate3onutc);
+    document.getElementById('turn3').addEventListener('blur', calculateall);
     document.getElementById('4offutc').addEventListener('blur', calculate4offutc);
     document.getElementById('4onutc').addEventListener('blur', calculate4onutc);
     document.getElementById('hotellocal').addEventListener('blur', calculatehotellocal);
-
-    document.getElementById('turn1').addEventListener('blur', calculateall);
-    document.getElementById('turn2').addEventListener('blur', calculateall);
-    document.getElementById('turn3').addEventListener('blur', calculateall);
-    // A Timezone változásakor is fusson le a számítás (mivel az befolyásolja az időt)
-    document.getElementById('timezone').addEventListener('input', calculateall);
-    document.getElementById('sector').addEventListener('input', calculatemaxfdp);
 
 
     // In this code we check if the browser supports Service Workers
