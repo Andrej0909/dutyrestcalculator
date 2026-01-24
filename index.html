@@ -2,9 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Duty/Rest Calculator</title>
     <style>
+        button {
+            touch-action: manipulation;
+        }
+
         * {
             box-sizing: border-box;
             }
@@ -12,7 +16,7 @@
         body {
             font-family: Arial, sans-serif;
             margin: 0;
-            margin: 20px;
+            margin: 10px;
             font-size: 20px;
             }
 
@@ -32,6 +36,7 @@
             }
 
         input {
+            flex: 1;
             width: 100%;
             height: 100%;
             font-size: 20px;
@@ -59,6 +64,7 @@
             width: 100%;
             position: relative;
             overflow: hidden; /* Biztosítja, hogy semmi ne lógjon ki a cellából */
+            transition: opacity 0.3s;
         }
 
         input:disabled {
