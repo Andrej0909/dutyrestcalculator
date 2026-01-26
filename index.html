@@ -599,50 +599,44 @@
     function updateSectorVisibility() {
         const sectors = parseInt(document.getElementById('sector').value) || 1;
 
-        // Mezők és cellák csoportjai
-        const s2Fields = ['2offutc', '2onutc', 'turn1', 'cell53', 'cell63'];
-        const s3Fields = ['3offutc', '3onutc', 'turn2', 'cell73', 'cell83'];
-        const s4Fields = ['4offutc', '4onutc', 'turn3', 'cell93', 'cell103'];
+        // Kibővített csoportok az új block input ID-kkal
+        const s2Fields = ['2offutc', '2onutc', 'turn1', 'block2', 'cell53', 'cell63'];
+        const s3Fields = ['3offutc', '3onutc', 'turn2', 'block3', 'cell73', 'cell83'];
+        const s4Fields = ['4offutc', '4onutc', 'turn3', 'block4', 'cell93', 'cell103'];
 
-        const processGroup = (fields, blockCellId, isVisible) => {
-            // 1. Az összes felsorolt mező (Inputok és Local Time cellák) kezelése
+        const processGroup = (fields, isVisible) => {
             fields.forEach(id => {
                 const el = document.getElementById(id);
                 if (!el) return;
 
-                // Vizuális eltüntetés és tiltás
-                el.style.opacity = isVisible ? "1" : "0";
+                // 1. Megkeressük a legkülső konténert (vagy a gombokat tartalmazó divet, vagy magát a TD-t)
+                // Az új wrapper miatt a .closest('.time-controls') a legjobb megoldás
+                const container = el.closest('.time-controls') || el;
+                
+                container.style.opacity = isVisible ? "1" : "0";
+                container.style.pointerEvents = isVisible ? "auto" : "none"; // Tiltott mezőre ne lehessen kattintani
+
                 if (el.tagName === 'INPUT') {
                     el.disabled = !isVisible;
-                    // Ha turn típusú input és nem látható, nullázzuk a matek miatt
-                    if (!isVisible && id.startsWith('turn')) {
-                        el.value = "00:00";
+                    if (!isVisible) {
+                        // Ha nem látható, nullázzuk a számításokhoz (kivéve a blockokat, ha meg akarod tartani az értéket)
+                        if (id.startsWith('turn') || id.startsWith('block')) {
+                            el.value = "00:00";
+                        }
                     }
                 }
-
-                // A gombok elrejtése az input mellett (ha van .time-controls szülő)
-                const container = el.closest('.time-controls');
-                if (container) {
-                    container.style.opacity = isVisible ? "1" : "0";
-                    const buttons = container.querySelectorAll('button');
-                    buttons.forEach(btn => btn.disabled = !isVisible);
-                }
+                
+                // Ha gombok is vannak a konténerben, azokat is tiltjuk
+                const buttons = container.querySelectorAll('button');
+                buttons.forEach(btn => btn.disabled = !isVisible);
             });
-
-            // 2. A Blokkidő cella (block2, 74, 94) kezelése
-            const bCell = document.getElementById(blockCellId);
-            if (bCell) {
-                bCell.style.opacity = isVisible ? "1" : "0";
-                if (!isVisible) bCell.textContent = "00:00";
-            }
         };
 
-        // Futtatás a kiválasztott szektorszám alapján
-        processGroup(s2Fields, 'block2', sectors >= 2);
-        processGroup(s3Fields, 'block3', sectors >= 3);
-        processGroup(s4Fields, 'block4', sectors >= 4);
+        // Futtatás
+        processGroup(s2Fields, sectors >= 2);
+        processGroup(s3Fields, sectors >= 3);
+        processGroup(s4Fields, sectors >= 4);
 
-        // Végül minden kalkuláció frissítése
         calculateall();
     }
    
