@@ -27,13 +27,19 @@
             border-collapse: collapse;   
             }
 
+        h1 {
+            margin-top: 10px;
+            margin-bottom: 10px;
+            font-size: 4.5vmin; /* Kicsit nagyobb, mint a táblázat szövege */
+        }
+
         th, td {
             border: 3px solid #ddd;
             height: 38px;
             width: 25%;
             padding: 0;
             text-align: center;
-            font-size: 3.5vw;          /* Ha a 20px-es alapméret túl nagy, itt veheted lejjebb */
+            font-size: 3vmin;          /* Ha a 20px-es alapméret túl nagy, itt veheted lejjebb */
             }
 
         input {
@@ -45,6 +51,7 @@
             border: 3px solid #2b2b2b;
             margin: 0;
             padding: 0;
+            font-size: 3.2vmin;
             }
 
         button {
@@ -87,6 +94,22 @@
             background-color: #f9f9f9 !important; /* Enyhe szürke, hogy látszódjon: ott nincs bevitel */
             border-color: #eee !important;
         }
+
+        .input-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .input-label {
+            position: absolute;
+            top: 2px;
+            left: 4px;
+            font-size: 1.6vmin;
+            color: #555;
+            pointer-events: none; /* Így az átlátszó feliraton keresztül is lehet kattintani az inputra */
+            z-index: 10;
+        }
      
     </style>
 </head>
@@ -123,7 +146,7 @@
         <th> </th>
         <th>UTC</th>
         <th>Local time</th>
-        <th style="font-size: 17px;">Block/ Turnaround time</th>
+        <th style="font-size: 2.7vmin;">Block/ Turnaround time</th>
     </tr>
 <!-- Második sora a táblázatnak -->
     <tr>
@@ -165,7 +188,17 @@
         </td>
 
         <td id="cell33"></td>
-        <td id="cell34">01:00</td>      
+
+        <td>
+            <div class="time-controls">
+                <button type="button" onclick="adjustblock1(-1)">−</button>
+                <div class="input-wrapper">
+                    <span class="input-label">Block 1</span>
+                    <input type="text" id="block1" value="01:00" maxlength="5" class="time-input" style="padding-top: 8px;">
+                </div>
+                <button type="button" onclick="adjustblock1(1)">+</button>
+            </div>
+        </td>
     </tr>
 
 <!-- Negyedik sora a táblázatnak -->
@@ -201,7 +234,17 @@
         </td>
 
         <td id="cell53"></td>
-        <td id="cell54">01:00</td>       
+
+        <td>
+            <div class="time-controls">
+                <button type="button" onclick="adjustblock2(-1)">−</button>
+                <div class="input-wrapper">
+                    <span class="input-label">Block 2</span>
+                    <input type="text" id="block2" value="01:00" maxlength="5" class="time-input" style="padding-top: 8px;">
+                </div>
+                <button type="button" onclick="adjustblock2(1)">+</button>
+            </div>
+        </td>      
     </tr>
 
 <!-- Hatodik sora a táblázatnak -->
@@ -237,7 +280,17 @@
         </td>
 
         <td id="cell73"></td>
-        <td id="cell74">01:00</td>       
+
+        <td>
+            <div class="time-controls">
+                <button type="button" onclick="adjustblock3(-1)">−</button>
+                <div class="input-wrapper">
+                    <span class="input-label">Block 3</span>
+                    <input type="text" id="block3" value="01:00" maxlength="5" class="time-input" style="padding-top: 8px;">
+                </div>
+                <button type="button" onclick="adjustblock3(1)">+</button>
+            </div>
+        </td>     
     </tr>
 
 <!-- Nyolcadik sora a táblázatnak -->
@@ -273,7 +326,17 @@
         </td>
 
         <td id="cell93"></td>
-        <td id="cell94">01:00</td>       
+
+        <td>
+            <div class="time-controls">
+                <button type="button" onclick="adjustblock4(-1)">−</button>
+                <div class="input-wrapper">
+                    <span class="input-label">Block 4</span>
+                    <input type="text" id="block4" value="01:00" maxlength="5" class="time-input" style="padding-top: 8px;">
+                </div>
+                <button type="button" onclick="adjustblock4(1)">+</button>
+            </div>
+        </td>     
     </tr>
 
 <!-- Tizedik sora a táblázatnak -->
@@ -336,38 +399,54 @@
 </table>
 <p></p> 
 
-<!-- Harmadik TÁBLA -->
+ <!-- Harmadik TÁBLA -->
+
 <!-- Első sora a táblázatnak (13)-->
+
 <table>
+
+    <colgroup>
+        <col style="width: 25%;">
+        <col style="width: 25%;">
+        <col style="width: 25%;">
+        <col style="width: 25%;">
+    </colgroup>
+
     <tr>
         <td>Latest end of FDP</td>
-        <td id="cell132" style="padding: 0; position: relative;">
-            <div id="normalremaining_utc" style="font-size: 11px; height: 50%; color: blue; border-bottom: 1px solid #ddd; line-height: 20px;"></div>
-            <div id="normallimit_utc" style="font-size: 20px; height: 50%; line-height: 25px;"></div>
-        </td>
-        <td id="cell133" style="padding: 0; position: relative;">
-            <div id="normalremaining_local" style="font-size: 11px; height: 50%; color: blue; border-bottom: 1px solid #ddd; line-height: 20px;"></div>
-            <div id="normallimit_local" style="font-size: 20px; height: 50%; line-height: 25px;"></div>
+        <td colspan="2" style="padding: 0; position: relative;">
+            <div id="normalremaining" style="font-size: 2.1vmin; height: 45%; color: blue; border-bottom: 1px solid #ddd; display: flex; align-items: center; justify-content: center;">
+                </div>
+            
+            <div style="display: flex; height: 55%;">
+                <div id="normallimit_utc" style="flex: 1; font-size: 3.5vmin; display: flex; align-items: center; justify-content: center; border-right: 1px solid #ddd;">
+                    </div>
+                <div id="normallimit_local" style="flex: 1; font-size: 3.5vmin; display: flex; align-items: center; justify-content: center;">
+                    </div>
+            </div>
         </td>
         <td style="position: relative; vertical-align: middle;">
             <span style="position: absolute; top: 2px; left: 0; width: 100%; text-align: center; font-size: 11px; color: #666;">Max FDP</span>
             <span id="cell134" style="display: block; margin-top: 10px;"></span>
         </td>
     </tr>
+
 <!-- Első sora a táblázatnak (14)-->
     <tr>
         <td>With extension (2h)</td>
-        <td id="cell142" style="padding: 0; position: relative;">
-            <div id="extremaining_utc" style="font-size: 11px; height: 50%; color: blue; border-bottom: 1px solid #ddd; line-height: 20px;"></div>
-            <div id="extlimit_utc" style="font-size: 20px; height: 50%; line-height: 25px;"></div>
+        <td colspan="2" style="padding: 0; position: relative;">
+            <div id="extremaining" style="font-size: 2.1vmin; height: 45%; color: blue; border-bottom: 1px solid #ddd; display: flex; align-items: center; justify-content: center;">
+                </div>           
+            <div style="display: flex; height: 55%;">
+                <div id="extlimit_utc" style="flex: 1; font-size: 3.5vmin; display: flex; align-items: center; justify-content: center; border-right: 1px solid #ddd;">
+                    </div>
+                <div id="extlimit_local" style="flex: 1; font-size: 3.5vmin; display: flex; align-items: center; justify-content: center;">
+                    </div>
+            </div>
         </td>
-        <td id="cell143" style="padding: 0; position: relative;">
-            <div id="extremaining_local" style="font-size: 11px; height: 50%; color: blue; border-bottom: 1px solid #ddd; line-height: 20px;"></div>
-            <div id="extlimit_local" style="font-size: 20px; height: 50%; line-height: 25px;"></div>
-        </td>
-        <td style="text-align: center; color: #666; font-size: 14px;">Max FDP + 2:00</td>
+        <td style="text-align: center; color: #666;">Max FDP + 2:00</td>
     </tr>
-</table>   
+</table>
 <p></p> 
 
 <!-- Negyedik TÁBLA (next duty)-->
@@ -420,7 +499,7 @@
     ]
 
     // Az összes időpont és tartam mezőhöz hozzáadjuk a nagy gombos billentyűzetet
-    const timeInputs = ['timezone','sector', 'reportutc','reportlocal', '1offutc', '1onutc', '2offutc', '2onutc', '3offutc', '3onutc', '4offutc', '4onutc', 'turn1', 'turn2', 'turn3', 'hotellocal'];
+    const timeInputs = ['timezone','sector', 'reportutc','reportlocal', '1offutc', '1onutc', '2offutc', '2onutc', '3offutc', '3onutc', '4offutc', '4onutc', 'turn1', 'turn2', 'turn3', 'hotellocal', 'block1', 'block2', 'block3', 'block4'];
 
     timeInputs.forEach(id => {
         const el = document.getElementById(id);
@@ -466,7 +545,7 @@
     }
 
     // 3. Alkalmazás az összes időmezőre
-    const timeFields = ['reportutc','reportlocal','1offutc','1onutc','2offutc','2onutc','3offutc','3onutc','4offutc','4onutc','turn1','turn2','turn3','hotellocal'];
+    const timeFields = ['reportutc','reportlocal','1offutc','1onutc','2offutc','2onutc','3offutc','3onutc','4offutc','4onutc','turn1','turn2','turn3','hotellocal', 'block1', 'block2', 'block3', 'block4'];
 
     timeFields.forEach(id => {
         const el = document.getElementById(id);
@@ -550,7 +629,7 @@
                 }
             });
 
-            // 2. A Blokkidő cella (cell54, 74, 94) kezelése
+            // 2. A Blokkidő cella (block2, 74, 94) kezelése
             const bCell = document.getElementById(blockCellId);
             if (bCell) {
                 bCell.style.opacity = isVisible ? "1" : "0";
@@ -559,16 +638,14 @@
         };
 
         // Futtatás a kiválasztott szektorszám alapján
-        processGroup(s2Fields, 'cell54', sectors >= 2);
-        processGroup(s3Fields, 'cell74', sectors >= 3);
-        processGroup(s4Fields, 'cell94', sectors >= 4);
+        processGroup(s2Fields, 'block2', sectors >= 2);
+        processGroup(s3Fields, 'block3', sectors >= 3);
+        processGroup(s4Fields, 'block4', sectors >= 4);
 
         // Végül minden kalkuláció frissítése
         calculateall();
     }
    
-
-
 
     //SZÁMÍTÁSI FÜGGVÉNYEK SZÁMÍTÁSI FÜGGVÉNYEK SZÁMÍTÁSI FÜGGVÉNYEK SZÁMÍTÁSI FÜGGVÉNYEK SZÁMÍTÁSI FÜGGVÉNYEK 
     // Ha a reportUTC változik -> Számoljuk a reportLocal-t (UTC + TZ)
@@ -588,7 +665,7 @@
         let off1Local = off1Utc + tz;
         document.getElementById('cell33').textContent = minutesToTime(off1Local);
         //1ON UTC kiszámítása
-        let block1 = timeToMinutes(document.getElementById('cell34').textContent);
+        let block1 = timeToMinutes(document.getElementById('block1').value);
         let on1Utc = off1Utc + block1;
         document.getElementById('1onutc').value = minutesToTime(on1Utc);
         //1ON local kiszámítása
@@ -603,7 +680,7 @@
         let off2Local = off2Utc + tz;
         document.getElementById('cell53').textContent = minutesToTime(off2Local);
         //2ON UTC kiszámítása
-        let block2 = timeToMinutes(document.getElementById('cell54').textContent);
+        let block2 = timeToMinutes(document.getElementById('block2').value);
         let on2Utc = off2Utc + block2;
         document.getElementById('2onutc').value = minutesToTime(on2Utc);
         //2ON local kiszámítása
@@ -618,7 +695,7 @@
         let off3Local = off3Utc + tz;
         document.getElementById('cell73').textContent = minutesToTime(off3Local);
         //3ON UTC kiszámítása
-        let block3 = timeToMinutes(document.getElementById('cell74').textContent);
+        let block3 = timeToMinutes(document.getElementById('block3').value);
         let on3Utc = off3Utc + block3;
         document.getElementById('3onutc').value = minutesToTime(on3Utc);
         //3ON local kiszámítása
@@ -633,7 +710,7 @@
         let off4Local = off4Utc + tz;
         document.getElementById('cell93').textContent = minutesToTime(off4Local);
         //4ON UTC kiszámítása
-        let block4 = timeToMinutes(document.getElementById('cell94').textContent);
+        let block4 = timeToMinutes(document.getElementById('block4').value);
         let on4Utc = off4Utc + block4;
         document.getElementById('4onutc').value = minutesToTime(on4Utc);
         //4ON local kiszámítása
@@ -683,7 +760,7 @@
         let on1utc = timeToMinutes(document.getElementById('1onutc').value);
         let off1utc = timeToMinutes(document.getElementById('1offutc').value);
         let block1 = on1utc - off1utc;
-        document.getElementById('cell34').textContent = minutesToTime(block1);
+        document.getElementById('block1').value = minutesToTime(block1);
         calculateall();
     }
 // 2. SZEKTOR SZÁMÍTÁSAI
@@ -701,7 +778,7 @@
         let off2utc = timeToMinutes(document.getElementById('2offutc').value);
         let block2 = on2utc - off2utc;
         // Block 2 kiszámítása
-        document.getElementById('cell54').textContent = minutesToTime(block2);
+        document.getElementById('block2').value = minutesToTime(block2);
         calculateall();
     }
 
@@ -720,7 +797,7 @@
         let off3utc = timeToMinutes(document.getElementById('3offutc').value);
         let block3 = on3utc - off3utc;
         // Block 3 kiszámítása
-        document.getElementById('cell74').textContent = minutesToTime(block3);
+        document.getElementById('block3').value = minutesToTime(block3);
         calculateall();
     }
 
@@ -739,7 +816,7 @@
         let off4utc = timeToMinutes(document.getElementById('4offutc').value);
         let block4 = on4utc - off4utc;
         // Block 4 kiszámítása
-        document.getElementById('cell94').textContent = minutesToTime(block4);
+        document.getElementById('block4').value = minutesToTime(block4);
         calculateall();
     }
 
@@ -789,10 +866,8 @@
         const sign = diff >= 0 ? "+" : "-";
         const remainingText = sign + minutesToTime(Math.abs(diff)) + " ramaining";
         
-        document.getElementById('normalremaining_utc').textContent = remainingText;
-        document.getElementById('normalremaining_local').textContent = remainingText;
-        document.getElementById('normalremaining_utc').style.color = diff >= 0 ? "blue" : "red";
-        document.getElementById('normalremaining_local').style.color = diff >= 0 ? "blue" : "red";
+        document.getElementById('normalremaining').textContent = remainingText;
+        document.getElementById('normalremaining').style.color = diff >= 0 ? "blue" : "red";
 
         // --- EXTENSION SZÁMÍTÁSA (14. sor: +120 perc) ---
         const extUtc = latestUtc + 120;
@@ -805,10 +880,8 @@
         const extSign = extDiff >= 0 ? "+" : "-";
         const extRemainingText = extSign + minutesToTime(Math.abs(extDiff)) + " ramaining";
 
-        document.getElementById('extremaining_utc').textContent = extRemainingText;
-        document.getElementById('extremaining_local').textContent = extRemainingText;
-        document.getElementById('extremaining_utc').style.color = extDiff >= 0 ? "blue" : "red";
-        document.getElementById('extremaining_local').style.color = extDiff >= 0 ? "blue" : "red";
+        document.getElementById('extremaining').textContent = extRemainingText;
+        document.getElementById('extremaining').style.color = extDiff >= 0 ? "blue" : "red";
     }
 
 
@@ -896,6 +969,14 @@
         calculate1offutc();
     }
 
+    function adjustblock1(change) {
+        ['block1', '1onutc', '2offutc', '2onutc', '3offutc', '3onutc', '4offutc', '4onutc','hotellocal'].forEach(id => {
+            const el = document.getElementById(id);
+            el.value = minutesToTime(timeToMinutes(el.value) + change);   
+        });
+        calculateall();
+    }
+
     function adjust1onutc(change) {
         ['1onutc', '2offutc', '2onutc', '3offutc', '3onutc', '4offutc', '4onutc','hotellocal'].forEach(id => {
             const el = document.getElementById(id);
@@ -918,6 +999,14 @@
             el.value = minutesToTime(timeToMinutes(el.value) + change);   
         });
         calculate2offutc();
+    }
+
+    function adjustblock2(change) {
+        ['block2', '2onutc', '3offutc', '3onutc', '4offutc', '4onutc','hotellocal'].forEach(id => {
+            const el = document.getElementById(id);
+            el.value = minutesToTime(timeToMinutes(el.value) + change);   
+        });
+        calculateall();
     }
 
     function adjust2onutc(change) {
@@ -943,6 +1032,14 @@
         calculate3offutc();
     }
 
+    function adjustblock3(change) {
+        ['block3', '3onutc', '4offutc', '4onutc','hotellocal'].forEach(id => {
+            const el = document.getElementById(id);
+            el.value = minutesToTime(timeToMinutes(el.value) + change);   
+        });
+        calculateall();
+    }
+
     function adjust3onutc(change) {
         ['3onutc', '4offutc', '4onutc','hotellocal'].forEach(id => {
             const el = document.getElementById(id);
@@ -965,6 +1062,14 @@
             el.value = minutesToTime(timeToMinutes(el.value) + change);   
         });
         calculate4offutc();
+    }
+
+    function adjustblock4(change) {
+        ['block4', '4onutc','hotellocal'].forEach(id => {
+            const el = document.getElementById(id);
+            el.value = minutesToTime(timeToMinutes(el.value) + change);   
+        });
+        calculateall();
     }
 
     function adjust4onutc(change) {
@@ -993,15 +1098,19 @@
     document.getElementById('reportutc').addEventListener('blur', calculateall);
     document.getElementById('reportlocal').addEventListener('blur', calculatereportlocal);
     document.getElementById('1offutc').addEventListener('blur', calculate1offutc);
+    document.getElementById('block1').addEventListener('blur', calculateall);
     document.getElementById('1onutc').addEventListener('blur', calculate1onutc);
     document.getElementById('turn1').addEventListener('blur', calculateall);
     document.getElementById('2offutc').addEventListener('blur', calculate2offutc);
+    document.getElementById('block2').addEventListener('blur', calculateall);
     document.getElementById('2onutc').addEventListener('blur', calculate2onutc);
     document.getElementById('turn2').addEventListener('blur', calculateall);
     document.getElementById('3offutc').addEventListener('blur', calculate3offutc);
+    document.getElementById('block3').addEventListener('blur', calculateall);
     document.getElementById('3onutc').addEventListener('blur', calculate3onutc);
     document.getElementById('turn3').addEventListener('blur', calculateall);
     document.getElementById('4offutc').addEventListener('blur', calculate4offutc);
+    document.getElementById('block4').addEventListener('blur', calculateall);
     document.getElementById('4onutc').addEventListener('blur', calculate4onutc);
     document.getElementById('hotellocal').addEventListener('blur', calculatehotellocal);
 
