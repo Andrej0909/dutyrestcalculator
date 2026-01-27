@@ -39,7 +39,7 @@
             width: 25%;
             padding: 0;
             text-align: center;
-            font-size: 3vmin;          /* Ha a 20px-es alapméret túl nagy, itt veheted lejjebb */
+            font-size: 3.3vmin;          /* Ha a 20px-es alapméret túl nagy, itt veheted lejjebb */
             }
 
         input {
@@ -51,7 +51,7 @@
             border: 3px solid #2b2b2b;
             margin: 0;
             padding: 0;
-            font-size: 3.2vmin;
+            font-size: 3.5vmin;
             }
 
         button {
@@ -114,7 +114,7 @@
     </style>
 </head>
 <body>
-    <h1 style="margin-top: 10px; margin-bottom: 10px; font-size: 1.7rem;">Duty/Rest Calculator</h1>
+    <h1>Duty/Rest Calculator</h1>
 <!-- ELSŐ TÁBLA -->
 <!-- Első sora a táblázatnak -->
 <table>
@@ -216,7 +216,7 @@
         <td>
             <div class="time-controls">
             <button type="button" onclick="adjustturn1(-1)">−</button>
-            <input type="text" id="turn1" value="00:30" maxlength="5" class="time-input">
+            <input type="text" id="turn1" value="00:45" maxlength="5" class="time-input">
             <button type="button" onclick="adjustturn1(1)">+</button>
             </div>
         </td>       
@@ -262,7 +262,7 @@
         <td>
             <div class="time-controls">
             <button type="button" onclick="adjustturn2(-1)">−</button>
-            <input type="text" id="turn2" value="00:30" maxlength="5" class="time-input">
+            <input type="text" id="turn2" value="00:45" maxlength="5" class="time-input">
             <button type="button" onclick="adjustturn2(1)">+</button>
             </div>
         </td>       
@@ -308,7 +308,7 @@
         <td>
             <div class="time-controls">
             <button type="button" onclick="adjustturn3(-1)">−</button>
-            <input type="text" id="turn3" value="00:30" maxlength="5" class="time-input">
+            <input type="text" id="turn3" value="00:45" maxlength="5" class="time-input">
             <button type="button" onclick="adjustturn3(1)">+</button>
             </div>
         </td>       
@@ -885,21 +885,30 @@
         const dutyEndUtc = timeToMinutes(document.getElementById('cell112').textContent);
         const travelTime = timeToMinutes(document.getElementById('cell114').textContent);
         const tz = tzToMinutes();
-        // 2. Alap rest kiszámítása (Duty Period hossza)
+
+        // 2. Alap rest kiszámítása (Duty Period hossza) - ÉJFÉL KEZELÉSSEL
         let dutyDuration = dutyEndUtc - reportUtc;
+        if (dutyDuration < 0) {
+            dutyDuration += 1440; 
+        }
+
         // 3. Travel time büntetés: a 30 perc feletti rész kétszerese
         let travelPenalty = 0;
         if (travelTime > 30) {
             travelPenalty = (travelTime - 30) * 2;
         }
+
         // 4. Összegzés és a 10 órás (600 perc) minimum ellenőrzése
         let totalRestMin = dutyDuration + travelPenalty;
         if (totalRestMin < 600) {
             totalRestMin = 600;
         }
-        // 5. Mikor kezdődhet a következő szolgálat? (Duty End + Rest)
-        const nextReportUtc = dutyEndUtc + totalRestMin;
-        const nextReportLocal = nextReportUtc + tz;
+
+        // 5. Mikor kezdődhet a következő szolgálat?
+        // Itt is fontos a modulo (% 1440), ha a következő kezdés is átlépi az éjfélt a kijelzésnél
+        const nextReportUtc = (dutyEndUtc + totalRestMin) % 1440;
+        const nextReportLocal = (nextReportUtc + tz + 1440) % 1440; // +1440 a negatív TZ elkerülésére
+
         // 6. Megjelenítés
         document.getElementById('cell154').textContent = minutesToTime(totalRestMin);
         document.getElementById('cell152').textContent = minutesToTime(nextReportUtc);
@@ -911,6 +920,13 @@
         document.getElementById('timezone').value = '0';
         document.getElementById('reportutc').value = '00:00';
         document.getElementById('sector').value = '4';
+        document.getElementById('block1').value = '01:00';
+        document.getElementById('block2').value = '01:00';
+        document.getElementById('block3').value = '01:00';
+        document.getElementById('block4').value = '01:00';
+        document.getElementById('turn1').value = '00:45';
+        document.getElementById('turn2').value = '00:45';
+        document.getElementById('turn3').value = '00:45';
         updateSectorVisibility();
     }
 
