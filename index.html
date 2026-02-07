@@ -1,5 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+<nav class="top-nav">
+    <a href="https://andrej0909.github.io/dutyrestcalculator/" class="nav-button active">Duty/Rest Calculator</a>
+    <a href="https://andrej0909.github.io/bag-calculator" class="nav-button">Bag Calculator</a>
+</nav>
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -19,6 +24,36 @@
             margin: 10px;
             font-size: 20px;
             }
+        
+        /* FELSŐ GOMBOK */
+        .top-nav {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .nav-button {
+            text-decoration: none;
+            padding: 10px 20px;
+            font-size: 2.3vmin;
+            text-align: center;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        .nav-button:hover {
+            background-color: #a2afbd;
+        }
+
+        /* Kiemelés annak az oldalnak, ahol éppen vagyunk */
+        .nav-button.active {
+            background-color: #28a745;
+            font-size: 3.3vmin;
+        }    
+
 
         table {
             width: 95vw;
