@@ -1,9 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-<nav class="top-nav">
-    <a href="https://andrej0909.github.io/dutyrestcalculator/" class="nav-button active">Duty/Rest Calculator</a>
-    <a href="https://andrej0909.github.io/bag-calculator" class="nav-button">Bag Calculator</a>
-</nav>
 
 <head>
     <meta charset="UTF-8">
@@ -23,36 +19,7 @@
             margin: 0;
             margin: 10px;
             font-size: 20px;
-            }
-        
-        /* FELSŐ GOMBOK */
-        .top-nav {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-        }
-
-        .nav-button {
-            text-decoration: none;
-            padding: 10px 20px;
-            font-size: 2.3vmin;
-            text-align: center;
-            background-color: #007bff;
-            color: white;
-            border-radius: 5px;
-            font-weight: bold;
-            transition: background-color 0.3s;
-        }
-
-        .nav-button:hover {
-            background-color: #a2afbd;
-        }
-
-        /* Kiemelés annak az oldalnak, ahol éppen vagyunk */
-        .nav-button.active {
-            background-color: #28a745;
-            font-size: 3.3vmin;
-        }    
+            }   
 
 
         table {
@@ -511,7 +478,27 @@
         Reset
     </button>
 </div>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding: 10px 20px; font-family: sans-serif;font-size: 14px;">
+    
+    <div style="flex: 1; text-align: left;">
+        <a href="https://andrej0909.github.io/bag-calculator" target="_blank" style="color: blue; text-decoration: underline;">
+            Loading calculator
+        </a>
+    </div>
 
+    <div style="flex: 1; text-align: center;">
+        <a href="https://swapmyflight.web.app" target="_blank" style="color: blue; text-decoration: underline;">
+            SwapSite
+        </a>
+    </div>
+
+    <div style="flex: 1; text-align: right;">
+        <a href="#" onclick="return false;" style="color: blue; text-decoration: underline; cursor: default;">
+            Contact/ Bug report
+        </a>
+    </div>
+    
+</div>
 
 <!-- FÜGGVÉNYEK, SZÁMÍTÁSOK -->
 <script>
@@ -936,7 +923,7 @@
         // 4. Összegzés és a 10 órás (600 perc) minimum ellenőrzése
         let totalRestMin = dutyDuration + travelPenalty;
         if (totalRestMin < 600) {
-            totalRestMin = 600;
+            totalRestMin = 600+travelPenalty;
         }
 
         // 5. Mikor kezdődhet a következő szolgálat?
@@ -962,6 +949,7 @@
         document.getElementById('turn1').value = '00:45';
         document.getElementById('turn2').value = '00:45';
         document.getElementById('turn3').value = '00:45';
+        document.getElementById('cell114').textContent = '00:30';
         updateSectorVisibility();
     }
 
