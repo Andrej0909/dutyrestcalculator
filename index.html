@@ -1017,8 +1017,10 @@
 
     function resetFields() {
         document.getElementById('timezone').value = '0';
-        document.getElementById('reportplanutc').value = '00:00';
         document.getElementById('sector').value = '4';
+        document.getElementById('reportplanutc').value = '00:00';
+        document.getElementById('delayedcheckin1').textContent = '00:00';
+        document.getElementById('cell24').textContent = '01:00';
         document.getElementById('block1').value = '01:00';
         document.getElementById('block2').value = '01:00';
         document.getElementById('block3').value = '01:00';
@@ -1027,7 +1029,7 @@
         document.getElementById('turn2').value = '00:45';
         document.getElementById('turn3').value = '00:45';
         document.getElementById('cell114').textContent = '00:30';
-        document.getElementById('delayedcheckin1').textContent = '00:00';
+        
         updateSectorVisibility();
     }
 
