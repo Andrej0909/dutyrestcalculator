@@ -150,9 +150,41 @@
         <th>Local time</th>
         <th style="font-size: 2.7vmin;">Block/ Turnaround time</th>
     </tr>
+
+
+<!-- Másfeledik sora a táblázatnak -->
+    <tr>
+        <td>Planned report time</td>
+
+        <td>
+            <div class="time-controls">
+            <button type="button" onclick="adjustreportplanutc(-1)">−</button>
+            <input type="text" id="reportplanutc" value="00:00" maxlength="5" class="time-input">
+            <button type="button" onclick="adjustreportplanutc(1)">+</button>
+            </div>
+        </td>
+
+        <td>
+            <div class="time-controls">
+            <button type="button" onclick="adjustreportplanlocal(-1)">−</button>
+            <input type="text" id="reportplanlocal" value="00:00" maxlength="5" class="time-input">
+            <button type="button" onclick="adjustreportplanlocal(1)">+</button>
+            </div>
+        </td>
+
+        <td style="position: relative; vertical-align: middle;">
+            <span style="position: absolute; top: 2px; left: 0; width: 100%; text-align: center; font-size: 11px; color: #666;">
+                Delayed check-in
+            </span>
+            
+            <span id="delayedcheckin1" style="display: block; margin-top: 10px;">00:00</span>
+        </td>
+    </tr>
+
+
 <!-- Második sora a táblázatnak -->
     <tr>
-        <td>Report time</td>
+        <td>First delayed report time</td>
 
         <td>
             <div class="time-controls">
@@ -521,7 +553,7 @@
     ]
 
     // Az összes időpont és tartam mezőhöz hozzáadjuk a nagy gombos billentyűzetet
-    const timeInputs = ['timezone','sector', 'reportutc','reportlocal', '1offutc', '1onutc', '2offutc', '2onutc', '3offutc', '3onutc', '4offutc', '4onutc', 'turn1', 'turn2', 'turn3', 'hotellocal', 'block1', 'block2', 'block3', 'block4'];
+    const timeInputs = ['timezone','sector','reportplanutc','reportplanlocal', 'reportutc','reportlocal', '1offutc', '1onutc', '2offutc', '2onutc', '3offutc', '3onutc', '4offutc', '4onutc', 'turn1', 'turn2', 'turn3', 'hotellocal', 'block1', 'block2', 'block3', 'block4'];
 
     timeInputs.forEach(id => {
         const el = document.getElementById(id);
@@ -567,7 +599,7 @@
     }
 
     // 3. Alkalmazás az összes időmezőre
-    const timeFields = ['reportutc','reportlocal','1offutc','1onutc','2offutc','2onutc','3offutc','3onutc','4offutc','4onutc','turn1','turn2','turn3','hotellocal', 'block1', 'block2', 'block3', 'block4'];
+    const timeFields = ['reportplanutc','reportplanlocal','reportutc','reportlocal','1offutc','1onutc','2offutc','2onutc','3offutc','3onutc','4offutc','4onutc','turn1','turn2','turn3','hotellocal', 'block1', 'block2', 'block3', 'block4'];
 
     timeFields.forEach(id => {
         const el = document.getElementById(id);
@@ -666,13 +698,23 @@
     //SZÁMÍTÁSI FÜGGVÉNYEK SZÁMÍTÁSI FÜGGVÉNYEK SZÁMÍTÁSI FÜGGVÉNYEK SZÁMÍTÁSI FÜGGVÉNYEK SZÁMÍTÁSI FÜGGVÉNYEK 
     // Ha a reportUTC változik -> Számoljuk a reportLocal-t (UTC + TZ)
     function calculateall() {
-        calculatemaxfdp();
-        //Beolvasás timezone és reportUTC, ezek az alapok
+        //A REPORTOK ADATAINAK SZÁMÍTÁSA
+        //Beolvasás timezone és reportplanUTC, ezek az alapok
         let tz = tzToMinutes();
-        let reportUtc = timeToMinutes(document.getElementById('reportutc').value);
-        //reportlocal kiszámítása
+        let reportPlanUtc = timeToMinutes(document.getElementById('reportplanutc').value);
+        let delayedCheckin1 = timeToMinutes(document.getElementById('delayedcheckin1').textContent)
+        let reportPlanLocal = reportPlanUtc + tz;
+        document.getElementById('reportplanlocal').value = minutesToTime(reportPlanLocal);
+        
+        // 3. Tényleges Report  kiszámítása (Plan UTC + Delayed)
+        let reportUtc = reportPlanUtc + delayedCheckin1;
+        document.getElementById('reportutc').value = minutesToTime(reportUtc);
         let reportLocal = reportUtc + tz;
         document.getElementById('reportlocal').value = minutesToTime(reportLocal);
+
+        calculatemaxfdp();
+
+        //A REPÜLÉSEK ADATAINAK SZÁMÍTÁSA
         //1OFF UTC kiszámítása
         let preduty = timeToMinutes(document.getElementById('cell24').textContent);
         let off1Utc = reportUtc + preduty;
@@ -757,11 +799,30 @@
     }
 
     // Ha a reportLocal változik -> Számoljuk a reportUTC-t (Local - TZ)
-    function calculatereportlocal() {
-        let localreport = timeToMinutes(document.getElementById('reportlocal').value);
+    function calculatereportplanlocal() {
         let tz = tzToMinutes();
-        let utcreport = localreport - tz;
-        document.getElementById('reportutc').value = minutesToTime(utcreport);
+        let reportPlanLocal = timeToMinutes(document.getElementById('reportplanlocal').value);
+        document.getElementById('reportplanlocal').value = minutesToTime(reportPlanLocal);
+        let reportPlanUtc = reportPlanLocal - tz
+        document.getElementById('reportplanutc').value = minutesToTime(reportPlanUtc);
+        calculateall();
+    }
+
+    // Ha a reportLocal változik -> Számoljuk a reportUTC-t (Local - TZ)
+    function calculatereportutc() {
+        let reportUtc = timeToMinutes(document.getElementById('reportutc').value);
+        let reportPlanUtc = timeToMinutes(document.getElementById('reportplanutc').value);
+        let delayedCheckin1 = reportUtc - reportPlanUtc
+        document.getElementById('delayedcheckin1').textContent = minutesToTime(delayedCheckin1);
+        calculateall();
+    }
+
+    // Ha a reportLocal változik -> Számoljuk a reportUTC-t (Local - TZ)
+    function calculatereportlocal() {
+        let reportLocal = timeToMinutes(document.getElementById('reportlocal').value);
+        let reportPlanLocal = timeToMinutes(document.getElementById('reportplanlocal').value);
+        let delayedCheckin1 = reportLocal - reportPlanLocal
+        document.getElementById('delayedcheckin1').textContent = minutesToTime(delayedCheckin1);
         calculateall();
     }
 
@@ -845,21 +906,37 @@
     }
 
     function calculatemaxfdp() {
-        const reportLocalStr = document.getElementById('reportlocal').value;
-        const reportMin = timeToMinutes(reportLocalStr);
+        const reportDelayStr = document.getElementById('reportlocal').value;
+        const reportPlanStr = document.getElementById('reportplanlocal').value;
+        const delayedCheckin1 = timeToMinutes(document.getElementById('delayedcheckin1').textContent);
         const sectors = parseInt(document.getElementById('sector').value) || 1;
 
         // Szektor index: 1-2 -> 0, 3 -> 1, 4 -> 2
         const sectorIdx = (sectors <= 2) ? 0 : (sectors === 3 ? 1 : 2);
+        
+        let finalLimit; // Itt deklaráljuk a változót
 
-        // Megkeressük a szabályt (mivel a táblázat teljes, mindig lesz találat)
-        const rule = fdpRules.find(r => reportMin >= r.start && reportMin <= r.end);
+        //A limit kiszámítása a tervezett report alapján
+        let referenceMinPlan = timeToMinutes(reportPlanStr);
+        const rulePlan = fdpRules.find(r => referenceMinPlan >= r.start && referenceMinPlan <= r.end);
+        let limitPlan = rulePlan.limits[sectorIdx];
 
-        // Kinyerjük a perceket és kiírjuk a cellába
-        const limitInMinutes = rule.limits[sectorIdx];
-        document.getElementById('cell134').textContent = minutesToTime(limitInMinutes);
 
-        return limitInMinutes;
+        //Ha a késés kevesebb mint 4 óra
+        if (delayedCheckin1 < 240) { // 240 perc = 4 óra
+            finalLimit = limitPlan
+
+        } else {
+            let referenceMinDelay = timeToMinutes(reportDelayStr);
+            const ruleDelay = fdpRules.find(r => referenceMinDelay >= r.start && referenceMinDelay <= r.end);
+            let limitDelay = ruleDelay.limits[sectorIdx];
+
+            finalLimit = Math.min(limitPlan, limitDelay);
+        }
+
+        document.getElementById('cell134').textContent = minutesToTime(finalLimit);
+
+        return finalLimit;
     }
 
     function calculatefdpend() {
@@ -880,7 +957,7 @@
 
         const diff = latestUtc - on4Utc;
         const sign = diff >= 0 ? "+" : "-";
-        const remainingText = sign + minutesToTime(Math.abs(diff)) + " ramaining";
+        const remainingText = sign + minutesToTime(Math.abs(diff)) + " remaining";
         
         document.getElementById('normalremaining').textContent = remainingText;
         document.getElementById('normalremaining').style.color = diff >= 0 ? "blue" : "red";
@@ -894,7 +971,7 @@
 
         const extDiff = extUtc - on4Utc;
         const extSign = extDiff >= 0 ? "+" : "-";
-        const extRemainingText = extSign + minutesToTime(Math.abs(extDiff)) + " ramaining";
+        const extRemainingText = extSign + minutesToTime(Math.abs(extDiff)) + " remaining";
 
         document.getElementById('extremaining').textContent = extRemainingText;
         document.getElementById('extremaining').style.color = extDiff >= 0 ? "blue" : "red";
@@ -940,7 +1017,7 @@
 
     function resetFields() {
         document.getElementById('timezone').value = '0';
-        document.getElementById('reportutc').value = '00:00';
+        document.getElementById('reportplanutc').value = '00:00';
         document.getElementById('sector').value = '4';
         document.getElementById('block1').value = '01:00';
         document.getElementById('block2').value = '01:00';
@@ -950,6 +1027,7 @@
         document.getElementById('turn2').value = '00:45';
         document.getElementById('turn3').value = '00:45';
         document.getElementById('cell114').textContent = '00:30';
+        document.getElementById('delayedcheckin1').textContent = '00:00';
         updateSectorVisibility();
     }
 
@@ -978,12 +1056,27 @@
         updateSectorVisibility();
     }
 
+    function adjustreportplanutc(change) {
+        ['reportplanlocal', 'reportplanutc','reportlocal', 'reportutc', '1offutc', '1onutc', '2offutc', '2onutc', '3offutc', '3onutc', '4offutc', '4onutc','hotellocal'].forEach(id => {
+            const el = document.getElementById(id);
+            el.value = minutesToTime(timeToMinutes(el.value) + change);
+        });
+        calculateall();
+    }
+
+    function adjustreportplanlocal(change) {
+        ['reportplanlocal', 'reportplanutc','reportlocal', 'reportutc', '1offutc', '1onutc', '2offutc', '2onutc', '3offutc', '3onutc', '4offutc', '4onutc','hotellocal'].forEach(id => {
+            const el = document.getElementById(id);
+            el.value = minutesToTime(timeToMinutes(el.value) + change);
+        });
+        calculatereportplanlocal();
+    }
     function adjustreportutc(change) {
         ['reportlocal', 'reportutc', '1offutc', '1onutc', '2offutc', '2onutc', '3offutc', '3onutc', '4offutc', '4onutc','hotellocal'].forEach(id => {
             const el = document.getElementById(id);
             el.value = minutesToTime(timeToMinutes(el.value) + change);
         });
-        calculateall();
+        calculatereportutc();
     }
 
     function adjustreportlocal(change) {
@@ -991,7 +1084,7 @@
             const el = document.getElementById(id);
             el.value = minutesToTime(timeToMinutes(el.value) + change);
         });
-        calculateall();
+        calculatereportlocal();
     }
 
     function adjust1offutc(change) {
@@ -1128,7 +1221,9 @@
     document.getElementById('sector').addEventListener('input', calculatemaxfdp, calculatesector,calculateall);
 
     // Add event listeners to each input field to trigger calculation on change
-    document.getElementById('reportutc').addEventListener('blur', calculateall);
+    document.getElementById('reportplanutc').addEventListener('blur', calculateall);
+    document.getElementById('reportplanlocal').addEventListener('blur', calculatereportplanlocal);
+    document.getElementById('reportutc').addEventListener('blur', calculatereportutc);
     document.getElementById('reportlocal').addEventListener('blur', calculatereportlocal);
     document.getElementById('1offutc').addEventListener('blur', calculate1offutc);
     document.getElementById('block1').addEventListener('blur', calculateall);
