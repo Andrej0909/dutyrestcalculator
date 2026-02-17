@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Duty/Rest Calculator</title>
+
     <style>
         button, input {
             touch-action: manipulation;
@@ -32,7 +33,7 @@
         h1 {
             margin-top: 10px;
             margin-bottom: 10px;
-            font-size: 4.5vmin; /* Kicsit nagyobb, mint a táblázat szövege */
+            font-size: 4.5vmin; /* fejléc szövege */
         }
 
         th, td {
@@ -41,8 +42,18 @@
             width: 25%;
             padding: 0;
             text-align: center;
-            font-size: 3.3vmin;          /* Ha a 20px-es alapméret túl nagy, itt veheted lejjebb */
-            }
+            font-size: 3.7vmin;     /* táblázat betűmérete, de nem az input mezőké */
+        }
+
+        td.compact {
+            font-size: 3.2vmin;
+            height: 38px;
+            line-height: 1;
+            padding: 1px;
+            overflow-wrap: break-word;
+            display: table-cell; /* Biztosítja, hogy cellaként viselkedjen */
+            vertical-align: middle; /* Középre igazítja a szöveget függőlegesen */
+        }
 
         input {
             width: 100%;
@@ -50,17 +61,17 @@
             font-size: 20px;
             text-align: center;
             background-color: #e0f3ff;
-            border: 3px solid #2b2b2b;
+            border: 2px solid #2b2b2b;
             margin: 0;
             padding: 0;
-            font-size: 3.5vmin;
-            }
+            font-size: 3.7vmin;
+        }
 
         button {
             font-size: 25px;
             cursor: pointer;
             height: 100%;
-            width: 25%;
+            width: 27%;
             padding: 0;
             text-align: center;
             margin: 0px;
@@ -116,7 +127,40 @@
     </style>
 </head>
 <body>
-    <h1>Duty/Rest Calculator</h1>
+    
+    <h1 style="margin-bottom: 10px;">Duty/Rest Calculator</h1>
+
+    <div style="margin-bottom: 20px;"> <button id="btn-delayed-1" 
+                type="button" 
+                onclick="initiateDelayedReport()" 
+                style="height: 38px; width: 30vw; font-size: 2.7vmin; font-weight: bold; cursor: pointer; border: 3px solid; background-color: #f8f9fa; border-radius: 8px;">
+            Delayed report time
+        </button>
+
+        <button id="btn-delayed-2" 
+                type="button" 
+                onclick="secondDelayedReport()" 
+                style="display: none; height: 38px; width: 30vw; font-size: 2.7vmin; font-weight: bold; cursor: pointer; border: 3px solid; background-color: #f8f9fa; border-radius: 8px;">
+            2nd delayed report
+        </button>
+
+        <div id="delay-info-text"
+            style=" display: none; 
+                    height: 38px;
+                    width: 45vw;
+                    font-size: 2.3vmin;
+                    text-align: center;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: bold;
+                    cursor: pointer;
+                    border: 1px solid;
+                    background-color: #f8f9fa;
+                    border-radius: 8px;">
+        In case of further amend of report time adjust the "Actual report time" field.
+        </div>
+
+    </div>
 <!-- ELSŐ TÁBLA -->
 <!-- Első sora a táblázatnak -->
 <table>
@@ -152,25 +196,13 @@
     </tr>
 
 
-<!-- Másfeledik sora a táblázatnak -->
-    <tr>
-        <td>Planned report time</td>
+<!-- Planned report time sora a táblázatnak     style="display: none;"    -->
+    <tr id="reportPlanRow" style="display: none;">
+        <td class="compact">Planned report time</td>
 
-        <td>
-            <div class="time-controls">
-            <button type="button" onclick="adjustreportplanutc(-1)">−</button>
-            <input type="text" id="reportplanutc" value="00:00" maxlength="5" class="time-input">
-            <button type="button" onclick="adjustreportplanutc(1)">+</button>
-            </div>
-        </td>
+        <td id="reportplanutc"></td>
 
-        <td>
-            <div class="time-controls">
-            <button type="button" onclick="adjustreportplanlocal(-1)">−</button>
-            <input type="text" id="reportplanlocal" value="00:00" maxlength="5" class="time-input">
-            <button type="button" onclick="adjustreportplanlocal(1)">+</button>
-            </div>
-        </td>
+        <td id="reportplanlocal"></td>
 
         <td style="position: relative; vertical-align: middle;">
             <span style="position: absolute; top: 2px; left: 0; width: 100%; text-align: center; font-size: 11px; color: #666;">
@@ -182,9 +214,50 @@
     </tr>
 
 
-<!-- Második sora a táblázatnak -->
+
+<!-- First delay report sora a táblázatnak -->
+    <tr id="reportFirstDelayRow" style="display: none;">
+        <td class="compact">First delayed report time</td>
+
+        <td id="reportfirsdelayutc"></td>
+
+        <td id="reportfirstdelaylocal"></td>
+
+        <td> </td>
+    </tr>
+
+<!-- notification second delay  time sora a táblázatnak -->
+    <tr id="notificationSecondDelayRow" style="display: none;">
+        <td class="compact">2nd delay notification time</td>
+
+        <td id="notificationtimeutc"></td>
+
+        <td>
+            <div class="time-controls">
+            <button type="button" onclick="adjustnotificationtimelocal(-1)">−</button>
+            <input type="text" id="notificationtimelocal" value="00:00" maxlength="5" class="time-input">
+            <button type="button" onclick="adjustnotificationtimelocal(1)">+</button>
+            </div>
+        </td>
+
+        <td> </td>
+    </tr>
+
+
+    <!-- FDP start sora a táblázatnak -->
+    <tr id="fdpSratrRow" style="display: none;">
+        <td>FDP start</td>
+
+        <td id="fdpstartutc"></td>
+
+        <td id="fdpstartlocal"></td>
+
+        <td> </td>
+    </tr>
+
+    <!-- Actualreport sora a táblázatnak -->
     <tr>
-        <td>First delayed report time</td>
+        <td class="compact">Actual report time</td>
 
         <td>
             <div class="time-controls">
@@ -210,6 +283,10 @@
             <span id="cell24" style="display: block; margin-top: 10px;">01:00</span>
         </td>
     </tr>
+
+
+
+
  <!-- Harmadik sora a táblázatnak  -->
     <tr>
         <td>1 OFF</td>
@@ -534,6 +611,9 @@
 
 <!-- FÜGGVÉNYEK, SZÁMÍTÁSOK -->
 <script>
+    //változó deklarálása,ahhoz,hogy megnézük van-e 2. késleltetés
+    let isSecondDelayActive = false; // Alaphelyzetben hamis
+    let isFirstdDelayActive = false; // Alaphelyzetben hamis
 
     const fdpRules = [
     { start: 360, end: 809, limits: [780, 750, 720] },  // 06:00 - 13:29
@@ -553,7 +633,7 @@
     ]
 
     // Az összes időpont és tartam mezőhöz hozzáadjuk a nagy gombos billentyűzetet
-    const timeInputs = ['timezone','sector','reportplanutc','reportplanlocal', 'reportutc','reportlocal', '1offutc', '1onutc', '2offutc', '2onutc', '3offutc', '3onutc', '4offutc', '4onutc', 'turn1', 'turn2', 'turn3', 'hotellocal', 'block1', 'block2', 'block3', 'block4'];
+    const timeInputs = ['timezone','sector','notificationtimelocal', 'reportutc','reportlocal', '1offutc', '1onutc', '2offutc', '2onutc', '3offutc', '3onutc', '4offutc', '4onutc', 'turn1', 'turn2', 'turn3', 'hotellocal', 'block1', 'block2', 'block3', 'block4'];
 
     timeInputs.forEach(id => {
         const el = document.getElementById(id);
@@ -599,7 +679,7 @@
     }
 
     // 3. Alkalmazás az összes időmezőre
-    const timeFields = ['reportplanutc','reportplanlocal','reportutc','reportlocal','1offutc','1onutc','2offutc','2onutc','3offutc','3onutc','4offutc','4onutc','turn1','turn2','turn3','hotellocal', 'block1', 'block2', 'block3', 'block4'];
+    const timeFields = ['notificationtimelocal','reportutc','reportlocal','1offutc','1onutc','2offutc','2onutc','3offutc','3onutc','4offutc','4onutc','turn1','turn2','turn3','hotellocal', 'block1', 'block2', 'block3', 'block4'];
 
     timeFields.forEach(id => {
         const el = document.getElementById(id);
@@ -693,6 +773,70 @@
 
         calculateall();
     }
+
+    //KÉSÉS GOMBOK LOGIKÁI  KÉSÉS GOMBOK LOGIKÁI  KÉSÉS GOMBOK LOGIKÁI  KÉSÉS GOMBOK LOGIKÁI  
+    function initiateDelayedReport() {
+        isFirstdDelayActive = true;
+        // 2. Értékek átmásolása a Planned (tervezett) sorba
+        document.getElementById('reportplanutc').textContent = document.getElementById('reportutc').value;
+        document.getElementById('reportplanlocal').textContent = document.getElementById('reportlocal').value;
+
+        // 3. A Planned sor megjelenítése
+        document.getElementById('reportPlanRow').style.display = 'table-row';
+
+        // 3. Gombok cseréje: az első eltűnik, a második megjelenik
+        document.getElementById('btn-delayed-1').style.display = 'none';
+        document.getElementById('btn-delayed-2').style.display = 'inline-block';
+
+        calculateall();
+    }
+
+    function secondDelayedReport() {
+        isSecondDelayActive = true; // Jelezzük a rendszernek, hogy aktiválták
+        // 2. Értékek átmásolása a Planned (tervezett) sorba
+        document.getElementById('reportfirsdelayutc').textContent = document.getElementById('reportutc').value;
+        document.getElementById('reportfirstdelaylocal').textContent = document.getElementById('reportlocal').value;
+
+        // 3. A Planned sor megjelenítése
+        document.getElementById('reportFirstDelayRow').style.display = 'table-row';
+        document.getElementById('notificationSecondDelayRow').style.display = 'table-row';
+        document.getElementById('fdpSratrRow').style.display = 'table-row';
+
+        // 3. Gombok cseréje: az első eltűnik, a második megjelenik
+        document.getElementById('btn-delayed-2').style.display = 'none';
+        document.getElementById('delay-info-text').style.display = 'flex';
+        calculatenotificationtimelocal();
+    }
+
+        // Ha a reportLocal változik -> Számoljuk a reportUTC-t (Local - TZ)
+    function calculatenotificationtimelocal() {
+        let tz = tzToMinutes();
+        let notificationtimelocal = timeToMinutes(document.getElementById('notificationtimelocal').value);
+        let notificationtimeutc = notificationtimelocal - tz;
+        document.getElementById('notificationtimeutc').textContent = minutesToTime(notificationtimeutc);
+        calculatefdpstart();
+    }
+
+    function calculatefdpstart() {
+        let tz = tzToMinutes();
+        let reportFirstDelayUtc = timeToMinutes(document.getElementById('reportfirsdelayutc').textContent);
+        let notificationTimeUtc = timeToMinutes(document.getElementById('notificationtimeutc').textContent);
+        let notificationTimeUtcP60= notificationTimeUtc + 60;
+
+        //meg kell nézni a két szám közötti különbséget, ha több mint 18 óra akkor napváltás történt
+        let diff = Math.abs(notificationTimeUtcP60 - reportFirstDelayUtc);
+
+        if (diff > 1080) {
+            fdpStartUtc = Math.max(notificationTimeUtcP60, reportFirstDelayUtc);
+        } else {
+            // Normál esetben a kisebb szám a korábbi
+            fdpStartUtc = Math.min(notificationTimeUtcP60, reportFirstDelayUtc);
+        }
+        document.getElementById('fdpstartutc').textContent = minutesToTime(fdpStartUtc);
+        let fdpStartLocal= fdpStartUtc + tz;
+        document.getElementById('fdpstartlocal').textContent = minutesToTime(fdpStartLocal);
+        calculateall();
+    }
    
 
     //SZÁMÍTÁSI FÜGGVÉNYEK SZÁMÍTÁSI FÜGGVÉNYEK SZÁMÍTÁSI FÜGGVÉNYEK SZÁMÍTÁSI FÜGGVÉNYEK SZÁMÍTÁSI FÜGGVÉNYEK 
@@ -701,16 +845,13 @@
         //A REPORTOK ADATAINAK SZÁMÍTÁSA
         //Beolvasás timezone és reportplanUTC, ezek az alapok
         let tz = tzToMinutes();
-        let reportPlanUtc = timeToMinutes(document.getElementById('reportplanutc').value);
-        let delayedCheckin1 = timeToMinutes(document.getElementById('delayedcheckin1').textContent)
-        let reportPlanLocal = reportPlanUtc + tz;
-        document.getElementById('reportplanlocal').value = minutesToTime(reportPlanLocal);
-        
-        // 3. Tényleges Report  kiszámítása (Plan UTC + Delayed)
-        let reportUtc = reportPlanUtc + delayedCheckin1;
-        document.getElementById('reportutc').value = minutesToTime(reportUtc);
+        let reportUtc = timeToMinutes(document.getElementById('reportutc').value);
         let reportLocal = reportUtc + tz;
         document.getElementById('reportlocal').value = minutesToTime(reportLocal);
+
+        let ReportPlanUtc = timeToMinutes(document.getElementById('reportplanutc').textContent);
+        let delayedCheckin1 = reportUtc - ReportPlanUtc
+        document.getElementById('delayedcheckin1').textContent = minutesToTime(delayedCheckin1)
 
         calculatemaxfdp();
 
@@ -799,30 +940,11 @@
     }
 
     // Ha a reportLocal változik -> Számoljuk a reportUTC-t (Local - TZ)
-    function calculatereportplanlocal() {
-        let tz = tzToMinutes();
-        let reportPlanLocal = timeToMinutes(document.getElementById('reportplanlocal').value);
-        document.getElementById('reportplanlocal').value = minutesToTime(reportPlanLocal);
-        let reportPlanUtc = reportPlanLocal - tz
-        document.getElementById('reportplanutc').value = minutesToTime(reportPlanUtc);
-        calculateall();
-    }
-
-    // Ha a reportLocal változik -> Számoljuk a reportUTC-t (Local - TZ)
-    function calculatereportutc() {
-        let reportUtc = timeToMinutes(document.getElementById('reportutc').value);
-        let reportPlanUtc = timeToMinutes(document.getElementById('reportplanutc').value);
-        let delayedCheckin1 = reportUtc - reportPlanUtc
-        document.getElementById('delayedcheckin1').textContent = minutesToTime(delayedCheckin1);
-        calculateall();
-    }
-
-    // Ha a reportLocal változik -> Számoljuk a reportUTC-t (Local - TZ)
     function calculatereportlocal() {
+        let tz = tzToMinutes();
         let reportLocal = timeToMinutes(document.getElementById('reportlocal').value);
-        let reportPlanLocal = timeToMinutes(document.getElementById('reportplanlocal').value);
-        let delayedCheckin1 = reportLocal - reportPlanLocal
-        document.getElementById('delayedcheckin1').textContent = minutesToTime(delayedCheckin1);
+        let reportUtc = reportLocal - tz;
+        document.getElementById('reportutc').value = minutesToTime(reportUtc);
         calculateall();
     }
 
@@ -906,14 +1028,13 @@
     }
 
     function calculatemaxfdp() {
-        const reportDelayStr = document.getElementById('reportlocal').value;
-        const reportPlanStr = document.getElementById('reportplanlocal').value;
+        const reportLocal = document.getElementById('reportlocal').value;
+        const reportPlanStr = document.getElementById('reportplanlocal').textContent;
         const delayedCheckin1 = timeToMinutes(document.getElementById('delayedcheckin1').textContent);
         const sectors = parseInt(document.getElementById('sector').value) || 1;
 
         // Szektor index: 1-2 -> 0, 3 -> 1, 4 -> 2
-        const sectorIdx = (sectors <= 2) ? 0 : (sectors === 3 ? 1 : 2);
-        
+        const sectorIdx = (sectors <= 2) ? 0 : (sectors === 3 ? 1 : 2);      
         let finalLimit; // Itt deklaráljuk a változót
 
         //A limit kiszámítása a tervezett report alapján
@@ -921,17 +1042,22 @@
         const rulePlan = fdpRules.find(r => referenceMinPlan >= r.start && referenceMinPlan <= r.end);
         let limitPlan = rulePlan.limits[sectorIdx];
 
+        //A lmit kiszámítása az aktuális időre
+        let referenceMinActual = timeToMinutes(reportLocal);
+        const ruleActual = fdpRules.find(r => referenceMinActual >= r.start && referenceMinActual <= r.end);
+        let limitActual = ruleActual.limits[sectorIdx];
 
-        //Ha a késés kevesebb mint 4 óra
-        if (delayedCheckin1 < 240) { // 240 perc = 4 óra
-            finalLimit = limitPlan
 
+        //ha van késleltetés akkor kell számolni az original vagy delayed report dillemával
+        if (isFirstdDelayActive) {
+            //Ha a késés kevesebb mint 4 óra
+            if (delayedCheckin1 < 240) { // 240 perc = 4 óra
+                finalLimit = limitPlan
+            } else {
+               finalLimit = Math.min(limitPlan, limitActual);
+            }
         } else {
-            let referenceMinDelay = timeToMinutes(reportDelayStr);
-            const ruleDelay = fdpRules.find(r => referenceMinDelay >= r.start && referenceMinDelay <= r.end);
-            let limitDelay = ruleDelay.limits[sectorIdx];
-
-            finalLimit = Math.min(limitPlan, limitDelay);
+            finalLimit = limitActual;
         }
 
         document.getElementById('cell134').textContent = minutesToTime(finalLimit);
@@ -942,14 +1068,23 @@
     function calculatefdpend() {
         // 1. Alapadatok beolvasása
         const reportUtc = timeToMinutes(document.getElementById('reportutc').value);
+        const fdpStartUtc = timeToMinutes(document.getElementById('fdpstartutc').textContent);
         const on4Utc = timeToMinutes(document.getElementById('4onutc').value);
         const tz = tzToMinutes();
         
         // 2. Max FDP limit lekérése (Percben)
         const maxFdpMin = calculatemaxfdp(); 
+        let latestUtc;
+
+        if (isSecondDelayActive) {
+            latestUtc = fdpStartUtc + maxFdpMin;
+        } else {
+            latestUtc = reportUtc + maxFdpMin;
+        }
+
 
         // --- NORMÁL FDP SZÁMÍTÁSA (13. sor) ---
-        const latestUtc = reportUtc + maxFdpMin;
+        
         const latestLocal = latestUtc + tz;
 
         document.getElementById('normallimit_utc').textContent = minutesToTime(latestUtc);
@@ -1018,8 +1153,20 @@
     function resetFields() {
         document.getElementById('timezone').value = '0';
         document.getElementById('sector').value = '4';
-        document.getElementById('reportplanutc').value = '00:00';
+
+        document.getElementById('reportplanutc').textContent = '00:00';
+        document.getElementById('reportplanlocal').textContent = '00:00';
         document.getElementById('delayedcheckin1').textContent = '00:00';
+        document.getElementById('reportfirsdelayutc').textContent = '00:00';
+        document.getElementById('reportfirstdelaylocal').textContent = '00:00';
+        document.getElementById('notificationtimeutc').textContent = '';
+        document.getElementById('notificationtimelocal').value = '';
+        document.getElementById('fdpstartutc').textContent = '';
+        document.getElementById('fdpstartlocal').textContent = '';
+        document.getElementById('reportutc').value = '00:00';
+        document.getElementById('reportlocal').value = '00:00';
+
+
         document.getElementById('cell24').textContent = '01:00';
         document.getElementById('block1').value = '01:00';
         document.getElementById('block2').value = '01:00';
@@ -1029,6 +1176,18 @@
         document.getElementById('turn2').value = '00:45';
         document.getElementById('turn3').value = '00:45';
         document.getElementById('cell114').textContent = '00:30';
+
+
+        document.getElementById('btn-delayed-1').style.display = 'inline-block';
+        document.getElementById('btn-delayed-2').style.display = 'none';
+        document.getElementById('delay-info-text').style.display = 'none';
+        document.getElementById('reportPlanRow').style.display = 'none';
+        document.getElementById('reportFirstDelayRow').style.display = 'none';
+        document.getElementById('notificationSecondDelayRow').style.display = 'none';
+        document.getElementById('fdpSratrRow').style.display = 'none';
+        
+
+
         
         updateSectorVisibility();
     }
@@ -1058,27 +1217,19 @@
         updateSectorVisibility();
     }
 
-    function adjustreportplanutc(change) {
-        ['reportplanlocal', 'reportplanutc','reportlocal', 'reportutc', '1offutc', '1onutc', '2offutc', '2onutc', '3offutc', '3onutc', '4offutc', '4onutc','hotellocal'].forEach(id => {
-            const el = document.getElementById(id);
-            el.value = minutesToTime(timeToMinutes(el.value) + change);
-        });
-        calculateall();
+
+    function adjustnotificationtimelocal(change) {
+        const el = document.getElementById('notificationtimelocal');
+        el.value = minutesToTime(timeToMinutes(el.value) + change);
+        calculatenotificationtimelocal();
     }
 
-    function adjustreportplanlocal(change) {
-        ['reportplanlocal', 'reportplanutc','reportlocal', 'reportutc', '1offutc', '1onutc', '2offutc', '2onutc', '3offutc', '3onutc', '4offutc', '4onutc','hotellocal'].forEach(id => {
-            const el = document.getElementById(id);
-            el.value = minutesToTime(timeToMinutes(el.value) + change);
-        });
-        calculatereportplanlocal();
-    }
     function adjustreportutc(change) {
         ['reportlocal', 'reportutc', '1offutc', '1onutc', '2offutc', '2onutc', '3offutc', '3onutc', '4offutc', '4onutc','hotellocal'].forEach(id => {
             const el = document.getElementById(id);
             el.value = minutesToTime(timeToMinutes(el.value) + change);
         });
-        calculatereportutc();
+        calculateall();
     }
 
     function adjustreportlocal(change) {
@@ -1223,9 +1374,8 @@
     document.getElementById('sector').addEventListener('input', calculatemaxfdp, calculatesector,calculateall);
 
     // Add event listeners to each input field to trigger calculation on change
-    document.getElementById('reportplanutc').addEventListener('blur', calculateall);
-    document.getElementById('reportplanlocal').addEventListener('blur', calculatereportplanlocal);
-    document.getElementById('reportutc').addEventListener('blur', calculatereportutc);
+    document.getElementById('notificationtimelocal').addEventListener('blur', calculatenotificationtimelocal);
+    document.getElementById('reportutc').addEventListener('blur', calculateall);
     document.getElementById('reportlocal').addEventListener('blur', calculatereportlocal);
     document.getElementById('1offutc').addEventListener('blur', calculate1offutc);
     document.getElementById('block1').addEventListener('blur', calculateall);
