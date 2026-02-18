@@ -1312,6 +1312,11 @@
         document.getElementById('reportFirstDelayRow').style.display = 'none';
         document.getElementById('notificationSecondDelayRow').style.display = 'none';
         document.getElementById('fdpSratrRow').style.display = 'none';
+
+        //standby-hoz tartozó rész
+        document.getElementById('standbytable').style.display = 'none';
+        document.getElementById('standbystart').value = '00:00';
+        document.getElementById('activation').value = '00:00';
  
         updateSectorVisibility();
     }
