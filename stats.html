@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Monthly Page Loads</title>
+</head>
+<body>
+  <h1>Monthly Page Loads</h1>
+  <div id="results"></div>
+
+  <script>
+    async function getMonthStats(year, month) {
+      const namespace = "andrej0909";
+      const baseKey = "dutyrestcalculator-";
+
+      const daysInMonth = new Date(year, month, 0).getDate();
+      const resultsDiv = document.getElementById("results");
+      resultsDiv.innerHTML = "Loading...";
+
+      const results = [];
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(year, month - 1, day);
+        const dateStr = date.toISOString().slice(0, 10);
+
+        try {
+          const res = await fetch(
+            `https://api.countapi.xyz/get/${namespace}/${baseKey}${dateStr}`
+          );
+          const data = await res.json();
+          results.push({
+            date: dateStr,
+            value: data.value || 0
+          });
+        } catch {
+          results.push({
+            date: dateStr,
+            value: 0
+          });
+        }
+      }
+
+      renderTable(results);
+    }
+
+    function renderTable(data) {
+      const resultsDiv = document.getElementById("results");
+      let html = "<table border='1'><tr><th>Date</th><th>Loads</th></tr>";
+
+      data.forEach(row => {
+        html += `<tr><td>${row.date}</td><td>${row.value}</td></tr>`;
+      });
+
+      html += "</table>";
+      resultsDiv.innerHTML = html;
+    }
+
+    // automatikusan aktuális hónap
+    const now = new Date();
+    getMonthStats(now.getFullYear(), now.getMonth() + 1);
+  </script>
+</body>
+</html>
