@@ -130,7 +130,8 @@
     
     <h1 style="margin-bottom: 10px;">Duty/Rest Calculator</h1>
 
-    <div style="margin-bottom: 20px;"> <button id="btn-delayed-1" 
+   <div style="margin-bottom: 10px; display: flex; align-items: center; gap: 5px;"> 
+        <button id="btn-delayed-1" 
                 type="button" 
                 onclick="initiateDelayedReport()" 
                 style="height: 38px; width: 30vw; font-size: 2.7vmin; font-weight: bold; cursor: pointer; border: 3px solid; background-color: #f8f9fa; border-radius: 8px;">
@@ -144,22 +145,29 @@
             2nd delayed report
         </button>
 
-        <div id="delay-info-text"
-            style=" display: none; 
+        <label id="delay-info-text"
+            style="display: none; 
                     height: 38px;
-                    width: 45vw;
-                    font-size: 2.3vmin;
+                    width: 30vw; /* Egyezzen meg a gomb szélességével */
+                    font-size: 2.3vmin; 
                     text-align: center;
                     align-items: center;
                     justify-content: center;
                     font-weight: bold;
-                    cursor: pointer;
-                    border: 1px solid;
-                    background-color: #f8f9fa;
-                    border-radius: 8px;">
-        In case of further amend of report time adjust the "Actual report time" field.
-        </div>
+                    border: 1px solid #ccc;
+                    background-color: #fff3cd; /* Enyhén sárgás, hogy jelezze: ez már nem gomb */
+                    border-radius: 8px;
+                    line-height: 1.1;
+                    padding: 2px;">
+            Adjust "Actual report time" for further changes.
+        </label>
 
+        <button id="btn-stby" 
+                type="button" 
+                onclick="calledfromstandby()" 
+                style="height: 38px; width: 30vw; font-size: 2.7vmin; font-weight: bold; cursor: pointer; border: 3px solid; background-color: #f8f9fa; border-radius: 8px;">
+            Called from standby
+        </button>
     </div>
 <!-- ELSŐ TÁBLA -->
 <!-- Első sora a táblázatnak -->
@@ -183,7 +191,42 @@
         </td>
     </tr>
 </table>    
-<p></p>    
+<p>   
+
+<!-- STANDBY TÁBLA -->
+<!-- Első sora a táblázatnak      -->
+<table id="standbytable" style="display: none;">
+    <tr>
+        <td></td>
+        <td class="compact">Standby start</td>
+        <td class="compact">Activation time</td>
+        <td class="compact">FDP reduction</td>
+    </tr>
+
+    <tr>
+        <td class="compact">Local time!</td>
+        
+        <td>
+            <div class="time-controls">
+            <button type="button" onclick="adjuststandbystart(-1)">−</button>
+            <input type="text" id="standbystart" value="00:00" maxlength="5" class="time-input">
+            <button type="button" onclick="adjuststandbystart(1)">+</button>
+            </div>
+        </td>
+
+        <td>
+            <div class="time-controls">
+            <button type="button" onclick="adjustactivation(-1)">−</button>
+            <input type="text" id="activation" value="00:00" maxlength="5" class="time-input">
+            <button type="button" onclick="adjustactivation(1)">+</button>
+            </div>
+        </td>
+
+        <td id="fdpreduction"></td>
+
+    </tr>
+</table>    
+<p>  
 
 <!-- MÁSODIK TÁBLA -->
  <!-- Első sora a táblázatnak -->
@@ -252,7 +295,7 @@
 
         <td id="fdpstartlocal"></td>
 
-        <td> </td>
+        <td id="teszt"> </td>
     </tr>
 
     <!-- Actualreport sora a táblázatnak -->
@@ -634,7 +677,7 @@
     ]
 
     // Az összes időpont és tartam mezőhöz hozzáadjuk a nagy gombos billentyűzetet
-    const timeInputs = ['timezone','sector','notificationtimelocal', 'reportutc','reportlocal', '1offutc', '1onutc', '2offutc', '2onutc', '3offutc', '3onutc', '4offutc', '4onutc', 'turn1', 'turn2', 'turn3', 'hotellocal', 'block1', 'block2', 'block3', 'block4'];
+    const timeInputs = ['timezone','sector','standbystart','activation', 'notificationtimelocal', 'reportutc','reportlocal', '1offutc', '1onutc', '2offutc', '2onutc', '3offutc', '3onutc', '4offutc', '4onutc', 'turn1', 'turn2', 'turn3', 'hotellocal', 'block1', 'block2', 'block3', 'block4'];
 
     timeInputs.forEach(id => {
         const el = document.getElementById(id);
@@ -680,7 +723,7 @@
     }
 
     // 3. Alkalmazás az összes időmezőre
-    const timeFields = ['notificationtimelocal','reportutc','reportlocal','1offutc','1onutc','2offutc','2onutc','3offutc','3onutc','4offutc','4onutc','turn1','turn2','turn3','hotellocal', 'block1', 'block2', 'block3', 'block4'];
+    const timeFields = ['standbystart','activation','notificationtimelocal','reportutc','reportlocal','1offutc','1onutc','2offutc','2onutc','3offutc','3onutc','4offutc','4onutc','turn1','turn2','turn3','hotellocal', 'block1', 'block2', 'block3', 'block4'];
 
     timeFields.forEach(id => {
         const el = document.getElementById(id);
@@ -809,12 +852,89 @@
         calculatenotificationtimelocal();
     }
 
-        // Ha a reportLocal változik -> Számoljuk a reportUTC-t (Local - TZ)
-    function calculatenotificationtimelocal() {
+
+    // A standby tábla láthatóvá tétele
+    function calledfromstandby() {
+        document.getElementById("standbytable").style.display = "table";
+    }
+
+    //Általános konvertáló függvények
+    //UTC-ről Localra számol és frissít
+    function syncUtcToLocal(sourceId, targetId) {
+        const sourceEl = document.getElementById(sourceId);
+        const targetEl = document.getElementById(targetId);
+        if (!sourceEl || !targetEl) return;
+        // Megnézzük, value-t vagy textContent-et kell-e olvasni/írni
+        let sourceValue = sourceEl.value !== undefined ? sourceEl.value : sourceEl.textContent;       
         let tz = tzToMinutes();
-        let notificationtimelocal = timeToMinutes(document.getElementById('notificationtimelocal').value);
-        let notificationtimeutc = notificationtimelocal - tz;
-        document.getElementById('notificationtimeutc').textContent = minutesToTime(notificationtimeutc);
+        let utcMin = timeToMinutes(sourceValue);
+        let localMin = utcMin + tz;     
+        let result = minutesToTime(localMin);
+        if (targetEl.value !== undefined) {
+            targetEl.value = result;
+        } else {
+            targetEl.textContent = result;
+        }
+    }
+
+    //Localról UTC-re számol és frissít
+    function syncLocalToUtc(sourceId, targetId) {
+        const sourceEl = document.getElementById(sourceId);
+        const targetEl = document.getElementById(targetId);
+        if (!sourceEl || !targetEl) return;
+        let sourceValue = sourceEl.value !== undefined ? sourceEl.value : sourceEl.textContent;   
+        let tz = tzToMinutes();
+        let localMin = timeToMinutes(sourceValue);
+        let utcMin = localMin - tz;    
+        let result = minutesToTime(utcMin);
+        if (targetEl.value !== undefined) {
+            targetEl.value = result;
+        } else {
+            targetEl.textContent = result;
+        }
+    }
+
+    function calculatefdpreduction() {
+        // Beolvassuk az elemeket (ellenőrizd az ID-kat a HTML-ben!)
+        let standbyStart = timeToMinutes(document.getElementById('standbystart').value);
+        let activation = timeToMinutes(document.getElementById('activation').value);
+
+        let mittudomen = 0;
+        let alsolimit = 0;
+        let felsolimit = 0;
+        let standbyStartCor = standbyStart;
+
+        if (standbyStart <= activation) {
+            if ((activation - standbyStart) > 1080) {
+                document.getElementById('fdpreduction').textContent = "Too long STBY";
+                return;
+            } else {
+            alsolimit  = Math.max(standbyStart, 420);
+            felsolimit = Math.min(activation, 1380);
+            mittudomen = Math.max(0,(felsolimit - alsolimit));
+            }
+        } else {
+            standbyStartCor = standbyStart -1440;
+            if ((activation - standbyStartCor) > 1080) {
+                document.getElementById('fdpreduction').textContent = "Too long STBY";
+                return;
+            } else {
+            let alszoszakasz = -60 - standbyStartCor;
+            let alsoszakaszabsz = Math.max(0,alszoszakasz);
+            let felsoszakasz = activation -420;
+            let felsoszakaszabs = Math.max(0, felsoszakasz);
+            mittudomen = alsoszakaszabsz + felsoszakaszabs;
+            }
+        }
+
+        let fdpReduction = Math.max(0, (mittudomen - 360));
+
+        document.getElementById('fdpreduction').textContent = minutesToTime(fdpReduction);
+        return fdpReduction;   
+    }
+
+    function calculatenotificationtimelocal() {
+        syncLocalToUtc('notificationtimelocal', 'notificationtimeutc');
         calculatefdpstart();
     }
 
@@ -823,33 +943,40 @@
         let reportFirstDelayUtc = timeToMinutes(document.getElementById('reportfirsdelayutc').textContent);
         let notificationTimeUtc = timeToMinutes(document.getElementById('notificationtimeutc').textContent);
         let notificationTimeUtcP60= notificationTimeUtc + 60;
+        let correctedNotification;
 
+        if (notificationTimeUtcP60 >= 1440) {
+            correctedNotification = notificationTimeUtcP60 - 1440;
+        } else {
+            correctedNotification = notificationTimeUtcP60;
+        }
+        
         //meg kell nézni a két szám közötti különbséget, ha több mint 18 óra akkor napváltás történt
-        let diff = Math.abs(notificationTimeUtcP60 - reportFirstDelayUtc);
+        let diff = Math.abs(correctedNotification - reportFirstDelayUtc);
+
+        //document.getElementById('teszt').textContent = (correctedNotification);
 
         if (diff > 1080) {
-            fdpStartUtc = Math.max(notificationTimeUtcP60, reportFirstDelayUtc);
+            fdpStartUtc = Math.max(correctedNotification, reportFirstDelayUtc);
         } else {
             // Normál esetben a kisebb szám a korábbi
-            fdpStartUtc = Math.min(notificationTimeUtcP60, reportFirstDelayUtc);
+            fdpStartUtc = Math.min(correctedNotification, reportFirstDelayUtc);
         }
         document.getElementById('fdpstartutc').textContent = minutesToTime(fdpStartUtc);
         let fdpStartLocal= fdpStartUtc + tz;
         document.getElementById('fdpstartlocal').textContent = minutesToTime(fdpStartLocal);
         calculateall();
     }
-   
+ 
 
     //SZÁMÍTÁSI FÜGGVÉNYEK SZÁMÍTÁSI FÜGGVÉNYEK SZÁMÍTÁSI FÜGGVÉNYEK SZÁMÍTÁSI FÜGGVÉNYEK SZÁMÍTÁSI FÜGGVÉNYEK 
     // Ha a reportUTC változik -> Számoljuk a reportLocal-t (UTC + TZ)
     function calculateall() {
         //A REPORTOK ADATAINAK SZÁMÍTÁSA
-        //Beolvasás timezone és reportplanUTC, ezek az alapok
-        let tz = tzToMinutes();
+        //Beolvasás timezone és reportplanUTC, ezek az alapok  
+        syncUtcToLocal('reportutc', 'reportlocal');
+        
         let reportUtc = timeToMinutes(document.getElementById('reportutc').value);
-        let reportLocal = reportUtc + tz;
-        document.getElementById('reportlocal').value = minutesToTime(reportLocal);
-
         let ReportPlanUtc = timeToMinutes(document.getElementById('reportplanutc').textContent);
         let delayedCheckin1 = reportUtc - ReportPlanUtc
         document.getElementById('delayedcheckin1').textContent = minutesToTime(delayedCheckin1)
@@ -860,70 +987,67 @@
         //1OFF UTC kiszámítása
         let preduty = timeToMinutes(document.getElementById('cell24').textContent);
         let off1Utc = reportUtc + preduty;
-        document.getElementById('1offutc').value = minutesToTime(off1Utc);
-        //1OFF local kiszámítása
-        let off1Local = off1Utc + tz;
-        document.getElementById('cell33').textContent = minutesToTime(off1Local);
+        document.getElementById('1offutc').value = minutesToTime(off1Utc)
+        //1OFF local kszámítása
+        syncUtcToLocal('1offutc', 'cell33');
+
         //1ON UTC kiszámítása
         let block1 = timeToMinutes(document.getElementById('block1').value);
         let on1Utc = off1Utc + block1;
-        document.getElementById('1onutc').value = minutesToTime(on1Utc);
+        document.getElementById('1onutc').value = minutesToTime(on1Utc)
         //1ON local kiszámítása
-        let on1Local = on1Utc + tz;
-        document.getElementById('cell43').textContent = minutesToTime(on1Local);
+        syncUtcToLocal('1onutc', 'cell43');
 
         //2OFF UTC kiszámítása
         let turn1 = timeToMinutes(document.getElementById('turn1').value);
         let off2Utc = on1Utc + turn1;
         document.getElementById('2offutc').value = minutesToTime(off2Utc);
         //2OFF local kiszámítása
-        let off2Local = off2Utc + tz;
-        document.getElementById('cell53').textContent = minutesToTime(off2Local);
+        syncUtcToLocal('2offutc', 'cell53');
+
         //2ON UTC kiszámítása
         let block2 = timeToMinutes(document.getElementById('block2').value);
         let on2Utc = off2Utc + block2;
         document.getElementById('2onutc').value = minutesToTime(on2Utc);
         //2ON local kiszámítása
-        let on2Local = on2Utc + tz;
-        document.getElementById('cell63').textContent = minutesToTime(on2Local);
+        syncUtcToLocal('2onutc', 'cell63');
 
         //3OFF UTC kiszámítása
         let turn2 = timeToMinutes(document.getElementById('turn2').value);
         let off3Utc = on2Utc + turn2;
         document.getElementById('3offutc').value = minutesToTime(off3Utc);
         //3OFF local kiszámítása
-        let off3Local = off3Utc + tz;
-        document.getElementById('cell73').textContent = minutesToTime(off3Local);
+        syncUtcToLocal('3offutc', 'cell73');
+
         //3ON UTC kiszámítása
         let block3 = timeToMinutes(document.getElementById('block3').value);
         let on3Utc = off3Utc + block3;
         document.getElementById('3onutc').value = minutesToTime(on3Utc);
         //3ON local kiszámítása
-        let on3Local = on3Utc + tz;
-        document.getElementById('cell83').textContent = minutesToTime(on3Local);
+        syncUtcToLocal('3onutc', 'cell83');
 
         //4OFF UTC kiszámítása
         let turn3 = timeToMinutes(document.getElementById('turn3').value);
         let off4Utc = on3Utc + turn3;
         document.getElementById('4offutc').value = minutesToTime(off4Utc);
         //4OFF local kiszámítása
-        let off4Local = off4Utc + tz;
-        document.getElementById('cell93').textContent = minutesToTime(off4Local);
+        syncUtcToLocal('4offutc', 'cell93');
+
         //4ON UTC kiszámítása
         let block4 = timeToMinutes(document.getElementById('block4').value);
         let on4Utc = off4Utc + block4;
         document.getElementById('4onutc').value = minutesToTime(on4Utc);
         //4ON local kiszámítása
-        let on4Local = on4Utc + tz;
-        document.getElementById('cell103').textContent = minutesToTime(on4Local);
+        syncUtcToLocal('4onutc', 'cell103');
+
 
         //Duty end számítása
         let dutyendutc = on4Utc + 30;
-        let dutyendlocal = dutyendutc +tz;
         document.getElementById('cell112').textContent = minutesToTime(dutyendutc);
-        document.getElementById('cell113').textContent = minutesToTime(dutyendlocal);
+        syncUtcToLocal('cell112', 'cell113');
         
         //Travel time kiszámítása
+        let dutyendlocal = timeToMinutes(document.getElementById('cell113').textContent);
         let travelTime = timeToMinutes(document.getElementById('cell114').textContent);
         let hotellocal = dutyendlocal +travelTime;
         document.getElementById('hotellocal').value = minutesToTime(hotellocal);
@@ -942,10 +1066,7 @@
 
     // Ha a reportLocal változik -> Számoljuk a reportUTC-t (Local - TZ)
     function calculatereportlocal() {
-        let tz = tzToMinutes();
-        let reportLocal = timeToMinutes(document.getElementById('reportlocal').value);
-        let reportUtc = reportLocal - tz;
-        document.getElementById('reportutc').value = minutesToTime(reportUtc);
+        syncLocalToUtc('reportlocal', 'reportutc');
         calculateall();
     }
 
@@ -1036,7 +1157,8 @@
 
         // Szektor index: 1-2 -> 0, 3 -> 1, 4 -> 2
         const sectorIdx = (sectors <= 2) ? 0 : (sectors === 3 ? 1 : 2);      
-        let finalLimit; // Itt deklaráljuk a változót
+        let finalLimit; // Itt deklaráljuk a változót standbyos levonással
+        let finallimitwosty; //standby-os levonás nélkül
 
         //A limit kiszámítása a tervezett report alapján
         let referenceMinPlan = timeToMinutes(reportPlanStr);
@@ -1053,13 +1175,17 @@
         if (isFirstdDelayActive) {
             //Ha a késés kevesebb mint 4 óra
             if (delayedCheckin1 < 240) { // 240 perc = 4 óra
-                finalLimit = limitPlan
+                finallimitwosty = limitPlan
             } else {
-               finalLimit = Math.min(limitPlan, limitActual);
+               finallimitwosty = Math.min(limitPlan, limitActual);
             }
         } else {
-            finalLimit = limitActual;
+            finallimitwosty = limitActual;
         }
+
+        let reduction = calculatefdpreduction() || 0; //a standbytól hozott csökkentést meghívjuk
+        finalLimit =finallimitwosty -reduction;
+
 
         document.getElementById('cell134').textContent = minutesToTime(finalLimit);
 
@@ -1186,10 +1312,7 @@
         document.getElementById('reportFirstDelayRow').style.display = 'none';
         document.getElementById('notificationSecondDelayRow').style.display = 'none';
         document.getElementById('fdpSratrRow').style.display = 'none';
-        
-
-
-        
+ 
         updateSectorVisibility();
     }
 
@@ -1216,6 +1339,18 @@
         calculatefdpend();
         calculateminrest();
         updateSectorVisibility();
+    }
+
+    function adjuststandbystart(change) {
+        const el = document.getElementById('standbystart');
+        el.value = minutesToTime(timeToMinutes(el.value) + change);
+        calculatefdpreduction();
+    }
+
+    function adjustactivation(change) {
+        const el = document.getElementById('activation');
+        el.value = minutesToTime(timeToMinutes(el.value) + change);
+        calculatefdpreduction();
     }
 
 
@@ -1373,6 +1508,9 @@
     // A Timezone változásakor is fusson le a számítás (mivel az befolyásolja az időt)
     document.getElementById('timezone').addEventListener('input', calculateall);
     document.getElementById('sector').addEventListener('input', calculatemaxfdp, calculatesector,calculateall);
+
+    document.getElementById('standbystart').addEventListener('blur', calculatefdpreduction);
+    document.getElementById('activation').addEventListener('blur', calculatefdpreduction);
 
     // Add event listeners to each input field to trigger calculation on change
     document.getElementById('notificationtimelocal').addEventListener('blur', calculatenotificationtimelocal);
