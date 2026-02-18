@@ -607,7 +607,12 @@
 <!-- Első sora a táblázatnak (15)-->
 <table>
     <tr>
-        <td>Earliest next report</td>
+        <td>
+            <a href="/stats.html"
+            style="color: inherit; text-decoration: none; cursor: default;">
+                Earliest next report
+            </a>
+        </td>
         <td id="cell152"></td>
         <td id="cell153"></td>
 
@@ -1556,5 +1561,35 @@
 
     registerServiceWorker();
 </script>
+
+<script>
+(function () {
+
+  // Stabil navigation ellenőrzés
+  const navEntries = performance.getEntriesByType("navigation");
+  if (!navEntries.length || navEntries[0].type !== "navigate") {
+    return;
+  }
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  // Naponta csak egyszer számoljon eszközönként
+  if (localStorage.getItem("visitCountedDate") === today) {
+    return;
+  }
+
+  localStorage.setItem("visitCountedDate", today);
+
+  const namespace = "andrej0909";
+  const key = "dutyrestcalculator-" + today;
+
+  fetch(`https://api.countapi.xyz/hit/${namespace}/${key}`)
+    .catch(() => {
+      // offline vagy hálózati hiba esetén nem csinál semmit
+    });
+
+})();
+</script>
+
 </body>
 </html>
