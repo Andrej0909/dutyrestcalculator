@@ -1058,6 +1058,9 @@
         calculatefdpend();
         calculateminrest();
 
+        //az adatmentés függvénye
+        autoSavePage();
+
     }
 
     function calculatesector() {
@@ -1540,6 +1543,65 @@
     document.getElementById('block4').addEventListener('blur', calculateall);
     document.getElementById('4onutc').addEventListener('blur', calculate4onutc);
     document.getElementById('hotellocal').addEventListener('blur', calculatehotellocal);
+
+    // 1. MENTÉS: Ezt a calculateall() végén hívd meg!
+    function autoSavePage() {
+        const data = {
+            inputs: {},
+            texts: {},
+            visibility: {}
+        };
+        
+        // Input értékek mentése
+        document.querySelectorAll('input').forEach(el => {
+            if (el.id) data.inputs[el.id] = el.value;
+        });
+
+        // Számított mezők (TD/SPAN) mentése
+        document.querySelectorAll('td[id], span[id]').forEach(el => {
+            data.texts[el.id] = el.textContent;
+        });
+
+        // LÁTHATÓSÁG mentése: minden olyan sor (TR), aminek van ID-ja
+        document.querySelectorAll('tr[id], table[id]').forEach(el => {
+            data.visibility[el.id] = el.style.display;
+        });
+
+        // Mentés egyetlen csomagban
+        localStorage.setItem('flight_calculator_snapshot', JSON.stringify(data));
+    }
+
+    // 2. VISSZATÖLTÉS: Oldalnyitáskor
+    window.addEventListener('DOMContentLoaded', () => {
+        const saved = localStorage.getItem('flight_calculator_snapshot');
+        if (!saved) return;
+
+        const data = JSON.parse(saved);
+
+        // 1. Értékek visszaállítása
+        for (let id in data.inputs) {
+            const el = document.getElementById(id);
+            if (el) el.value = data.inputs[id];
+        }
+
+        for (let id in data.texts) {
+            const el = document.getElementById(id);
+            if (el) el.textContent = data.texts[id];
+        }
+
+        // 2. LÁTHATÓSÁG visszaállítása (Ez a legfontosabb!)
+        for (let id in data.visibility) {
+            const el = document.getElementById(id);
+            if (el) el.style.display = data.visibility[id];
+        }
+
+        // 3. Speciális állapotjelzők (amiket a gombjaid használnak)
+        if (data.visibility['reportPlanRow'] === 'table-row') isFirstdDelayActive = true;
+        if (data.visibility['reportFirstDelayRow'] === 'table-row') isSecondDelayActive = true;
+
+        // 4. Kényszerített frissítés, hogy a gombok tiltása/színe is helyreálljon
+        if (typeof updateSectorVisibility === "function") updateSectorVisibility();
+    });
 
 
     // In this code we check if the browser supports Service Workers
