@@ -1325,6 +1325,10 @@
         document.getElementById('activation').value = '00:00';
  
         updateSectorVisibility();
+
+        //a háttértár törlése
+        localStorage.clear();
+        location.reload(); // Ez visszaállítja az eredeti, üres HTML állapotot
     }
 
 
