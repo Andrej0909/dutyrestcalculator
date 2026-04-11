@@ -197,12 +197,12 @@
 <p>   
 
 <!-- STANDBY TÁBLA -->
-<!-- Első sora a táblázatnak      -->
-<table id="standbytable" style="display: none;">
+<!-- Első sora a táblázatnak    style="display: none;"   -->
+<table id="standbytable">
     <tr>
         <td></td>
         <td class="compact">Standby start</td>
-        <td class="compact">Activation time</td>
+        <td class="compact">STBY finish</td> <!-- Ez a sor lehet nem is kell mert a report time-1 perc      -->
         <td class="compact">FDP reduction</td>
     </tr>
 
@@ -217,13 +217,7 @@
             </div>
         </td>
 
-        <td>
-            <div class="time-controls">
-            <button type="button" onclick="adjustactivation(-1)">−</button>
-            <input type="text" id="activation" value="00:00" maxlength="5" class="time-input">
-            <button type="button" onclick="adjustactivation(1)">+</button>
-            </div>
-        </td>
+        <td id="activation"></td>
 
         <td id="fdpreduction"></td>
 
@@ -659,6 +653,7 @@
 <!-- FÜGGVÉNYEK, SZÁMÍTÁSOK -->
 <script>
     //változó deklarálása,ahhoz,hogy megnézük van-e 2. késleltetés
+    let isStandbyActive = false;
     let isSecondDelayActive = false; // Alaphelyzetben hamis
     let isFirstdDelayActive = false; // Alaphelyzetben hamis
 
@@ -680,7 +675,7 @@
     ]
 
     // Az összes időpont és tartam mezőhöz hozzáadjuk a nagy gombos billentyűzetet
-    const timeInputs = ['timezone','sector','standbystart','activation', 'notificationtimelocal', 'reportutc','reportlocal', '1offutc', '1onutc', '2offutc', '2onutc', '3offutc', '3onutc', '4offutc', '4onutc', 'turn1', 'turn2', 'turn3', 'hotellocal', 'block1', 'block2', 'block3', 'block4'];
+    const timeInputs = ['timezone','sector','standbystart', 'notificationtimelocal', 'reportutc','reportlocal', '1offutc', '1onutc', '2offutc', '2onutc', '3offutc', '3onutc', '4offutc', '4onutc', 'turn1', 'turn2', 'turn3', 'hotellocal', 'block1', 'block2', 'block3', 'block4'];
 
     timeInputs.forEach(id => {
         const el = document.getElementById(id);
@@ -726,7 +721,7 @@
     }
 
     // 3. Alkalmazás az összes időmezőre
-    const timeFields = ['standbystart','activation','notificationtimelocal','reportutc','reportlocal','1offutc','1onutc','2offutc','2onutc','3offutc','3onutc','4offutc','4onutc','turn1','turn2','turn3','hotellocal', 'block1', 'block2', 'block3', 'block4'];
+    const timeFields = ['standbystart','notificationtimelocal','reportutc','reportlocal','1offutc','1onutc','2offutc','2onutc','3offutc','3onutc','4offutc','4onutc','turn1','turn2','turn3','hotellocal', 'block1', 'block2', 'block3', 'block4'];
 
     timeFields.forEach(id => {
         const el = document.getElementById(id);
@@ -859,6 +854,8 @@
     // A standby tábla láthatóvá tétele
     function calledfromstandby() {
         document.getElementById("standbytable").style.display = "table";
+        isStandbyActive = true;
+        calculatefdpreduction();
     }
 
     //Általános konvertáló függvények
@@ -898,9 +895,21 @@
     }
 
     function calculatefdpreduction() {
+
+        let reportLocal = timeToMinutes(document.getElementById('reportlocal').value);
+        let activation;
+
+        //a standbyhoz az activation kiszámítása (ha már van first delay akkor nem számolja újra mert a planned report time se változik)
+        if (!isFirstdDelayActive) {
+            activation = reportLocal -1;
+            document.getElementById('activation').textContent = minutesToTime(activation);
+        } else {
+            // Ha MÁR VAN késés: nem számolunk, hanem kiolvassuk a FIXÁLT értéket a cellából
+            activation = timeToMinutes(document.getElementById('activation').textContent);
+        }
+
         // Beolvassuk az elemeket (ellenőrizd az ID-kat a HTML-ben!)
         let standbyStart = timeToMinutes(document.getElementById('standbystart').value);
-        let activation = timeToMinutes(document.getElementById('activation').value);
 
         let mittudomen = 0;
         let alsolimit = 0;
@@ -981,8 +990,13 @@
         
         let reportUtc = timeToMinutes(document.getElementById('reportutc').value);
         let ReportPlanUtc = timeToMinutes(document.getElementById('reportplanutc').textContent);
-        let delayedCheckin1 = reportUtc - ReportPlanUtc
-        document.getElementById('delayedcheckin1').textContent = minutesToTime(delayedCheckin1)
+        let delayedCheckin1 = reportUtc - ReportPlanUtc;
+        document.getElementById('delayedcheckin1').textContent = minutesToTime(delayedCheckin1);
+
+
+        if (isStandbyActive) {
+            calculatefdpreduction()
+        }
 
         calculatemaxfdp();
 
@@ -1189,7 +1203,7 @@
             finallimitwosty = limitActual;
         }
 
-        let reduction = calculatefdpreduction() || 0; //a standbytól hozott csökkentést meghívjuk
+        let reduction = timeToMinutes(document.getElementById('fdpreduction').textContent) || 0; //a standbytól hozott csökkentést meghívjuk
         finalLimit =finallimitwosty -reduction;
 
 
@@ -1284,7 +1298,7 @@
 
 
     function resetFields() {
-        document.getElementById('timezone').value = '0';
+        //document.getElementById('timezone').value = '0'; //Ezt inkább ne reseteljük mert valószínű ugyanabban az időzónában van valaki huzamosabb ideig
         document.getElementById('sector').value = '4';
 
         document.getElementById('reportplanutc').textContent = '00:00';
@@ -1322,13 +1336,13 @@
         //standby-hoz tartozó rész
         document.getElementById('standbytable').style.display = 'none';
         document.getElementById('standbystart').value = '00:00';
-        document.getElementById('activation').value = '00:00';
+        document.getElementById('activation').textContent = '00:00';
  
         updateSectorVisibility();
 
         //a háttértár törlése
         localStorage.clear();
-        location.reload(); // Ez visszaállítja az eredeti, üres HTML állapotot
+        //location.reload(); // Ez visszaállítja az eredeti, üres HTML állapotot
     }
 
 
@@ -1360,14 +1374,8 @@
         const el = document.getElementById('standbystart');
         el.value = minutesToTime(timeToMinutes(el.value) + change);
         calculatefdpreduction();
+        calculatemaxfdp();
     }
-
-    function adjustactivation(change) {
-        const el = document.getElementById('activation');
-        el.value = minutesToTime(timeToMinutes(el.value) + change);
-        calculatefdpreduction();
-    }
-
 
     function adjustnotificationtimelocal(change) {
         const el = document.getElementById('notificationtimelocal');
@@ -1524,8 +1532,7 @@
     document.getElementById('timezone').addEventListener('input', calculateall);
     document.getElementById('sector').addEventListener('input', calculatemaxfdp, calculatesector,calculateall);
 
-    document.getElementById('standbystart').addEventListener('blur', calculatefdpreduction);
-    document.getElementById('activation').addEventListener('blur', calculatefdpreduction);
+    document.getElementById('standbystart').addEventListener('blur', calculatefdpreduction, calculatemaxfdp);
 
     // Add event listeners to each input field to trigger calculation on change
     document.getElementById('notificationtimelocal').addEventListener('blur', calculatenotificationtimelocal);
