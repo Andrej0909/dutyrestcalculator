@@ -1216,8 +1216,14 @@
         // 1. Alapadatok beolvasása
         const reportUtc = timeToMinutes(document.getElementById('reportutc').value);
         const fdpStartUtc = timeToMinutes(document.getElementById('fdpstartutc').textContent);
-        const on4Utc = timeToMinutes(document.getElementById('4onutc').value);
+        let on4Utc = timeToMinutes(document.getElementById('4onutc').value);
         const tz = tzToMinutes();
+
+        if (reportUtc > on4Utc) {
+            on4Utc = on4Utc + 1440;
+        } else if (fdpStartUtc > on4Utc) {
+            on4Utc = on4Utc + 1440;
+        }
         
         // 2. Max FDP limit lekérése (Percben)
         const maxFdpMin = calculatemaxfdp(); 
@@ -1229,14 +1235,13 @@
             latestUtc = reportUtc + maxFdpMin;
         }
 
-
         // --- NORMÁL FDP SZÁMÍTÁSA (13. sor) ---
         
         const latestLocal = latestUtc + tz;
 
         document.getElementById('normallimit_utc').textContent = minutesToTime(latestUtc);
         document.getElementById('normallimit_local').textContent = minutesToTime(latestLocal);
-
+     
         const diff = latestUtc - on4Utc;
         const sign = diff >= 0 ? "+" : "-";
         const remainingText = sign + minutesToTime(Math.abs(diff)) + " remaining";
@@ -1251,7 +1256,7 @@
         document.getElementById('extlimit_utc').textContent = minutesToTime(extUtc);
         document.getElementById('extlimit_local').textContent = minutesToTime(extLocal);
 
-        const extDiff = extUtc - on4Utc;
+        const extDiff = diff + 120;
         const extSign = extDiff >= 0 ? "+" : "-";
         const extRemainingText = extSign + minutesToTime(Math.abs(extDiff)) + " remaining";
 
