@@ -1589,6 +1589,60 @@
 
     // 2. VISSZATÖLTÉS: Oldalnyitáskor
     window.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+
+        if (urlParams.has('report')) {
+            // eCrew adatok érkeztek URL paraméterként – localStorage-t kihagyjuk
+            function p2min(hhmm) {
+                if (!hhmm || hhmm.length !== 4) return null;
+                return parseInt(hhmm.slice(0, 2)) * 60 + parseInt(hhmm.slice(2, 4));
+            }
+            function min2str(m) {
+                m = ((m % 1440) + 1440) % 1440;
+                return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
+            }
+
+            const repMin = p2min(urlParams.get('report'));
+            if (repMin !== null) {
+                document.getElementById('reportutc').value = min2str(repMin);
+            }
+
+            const tz = parseInt(urlParams.get('tz') || '0') || 0;
+            document.getElementById('timezone').value = tz;
+
+            const sectorCount = Math.min(4, Math.max(1, parseInt(urlParams.get('sectors') || '1') || 1));
+            document.getElementById('sector').value = sectorCount;
+
+            let prevMin = repMin !== null ? repMin : 0;
+
+            for (let i = 1; i <= sectorCount; i++) {
+                const depMin = p2min(urlParams.get('dep' + i));
+                const arrMin = p2min(urlParams.get('arr' + i));
+
+                if (depMin !== null) {
+                    let diff = depMin - prevMin;
+                    if (diff < 0) diff += 1440;
+                    if (i === 1) {
+                        document.getElementById('cell24').textContent = min2str(diff);
+                    } else {
+                        const turnEl = document.getElementById('turn' + (i - 1));
+                        if (turnEl) turnEl.value = min2str(diff);
+                    }
+                }
+
+                if (depMin !== null && arrMin !== null) {
+                    let block = arrMin - depMin;
+                    if (block < 0) block += 1440;
+                    const blockEl = document.getElementById('block' + i);
+                    if (blockEl) blockEl.value = min2str(block);
+                    prevMin = arrMin;
+                }
+            }
+
+            if (typeof updateSectorVisibility === 'function') updateSectorVisibility();
+            return;
+        }
+
         const saved = localStorage.getItem('flight_calculator_snapshot');
         if (!saved) return;
 
