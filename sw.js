@@ -1,35 +1,44 @@
 const cacheName = "fdp-calc-v1";
-// Itt add meg a fájlok pontos nevét! 
-// Ha van CSS vagy JS külön fájlban, azokat is írd ide.
+// Ha van külön CSS vagy JS fájl, add hozzá ide!
 const cacheUrls = [
   "./",
   "index.html",
-  "manifest.json" // Ha készítesz hozzá manifestet is
+  "manifest.json"
 ];
 
-// Service Worker telepítése
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(cacheName).then((cache) => {
-      console.log("FDP Cache megnyitva");
       return cache.addAll(cacheUrls);
     })
   );
+  self.skipWaiting(); // Azonnal aktiválódjon, ne várjon
 });
 
-// Erőforrások kiszolgálása
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    // Régi cache-ek törlése
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys.filter((key) => key !== cacheName).map((key) => caches.delete(key))
+      )
+    ).then(() => self.clients.claim()) // Azonnal vegye át az irányítást
+  );
+});
+
 self.addEventListener("fetch", (event) => {
+  // Csak same-origin kéréseket kezelünk
+  if (!event.request.url.startsWith(self.location.origin)) return;
+
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      // Ha megvan a cache-ben, adjuk vissza azt
       if (cachedResponse) {
         return cachedResponse;
       }
 
-      // Ha nincs meg, töltsük le és mentsük el a jövőre
       return fetch(event.request)
         .then((fetchResponse) => {
-          if (!fetchResponse || fetchResponse.status !== 200 || fetchResponse.type !== 'basic') {
+          if (!fetchResponse || fetchResponse.status !== 200 || fetchResponse.type !== "basic") {
             return fetchResponse;
           }
           const responseToCache = fetchResponse.clone();
@@ -39,8 +48,6 @@ self.addEventListener("fetch", (event) => {
           return fetchResponse;
         })
         .catch(() => {
-          // Ha teljesen offline vagyunk és nincs a cache-ben a kért fájl
-          // Akkor adjuk vissza a főoldalt (index.html)
           return caches.match("index.html");
         });
     })
