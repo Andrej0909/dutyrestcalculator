@@ -126,12 +126,19 @@
      
     </style>
 
+    <link rel="manifest" href="manifest.json">
     <script data-goatcounter="https://andytsoftware.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
 </head>
 <body>
     
-    <h1 style="margin-bottom: 10px;">Duty/Rest Calculator</h1>
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px; margin-bottom: 10px;">
+        <h1 style="margin: 0;">Duty/Rest Calculator</h1>
+        <button id="btn-install" onclick="installApp()"
+                style="display: none; font-size: 2.5vmin; padding: 4px 10px; cursor: pointer; border: 2px solid #2196F3; border-radius: 8px; background: #f0f8ff; color: #2196F3; white-space: nowrap;">
+            + Install
+        </button>
+    </div>
 
    <div style="margin-bottom: 10px; display: flex; align-items: center; gap: 5px;"> 
         <button id="btn-delayed-1" 
@@ -1244,8 +1251,8 @@
      
         const diff = latestUtc - on4Utc;
         const sign = diff >= 0 ? "+" : "-";
-        const remainingText = sign + minutesToTime(Math.abs(diff)) + " remaining";
-        
+        const remainingText = sign + minutesToTime(Math.abs(diff)) + " remaining" + (diff < 0 ? " — Extension required!" : "");
+
         document.getElementById('normalremaining').textContent = remainingText;
         document.getElementById('normalremaining').style.color = diff >= 0 ? "blue" : "red";
 
@@ -1258,7 +1265,7 @@
 
         const extDiff = diff + 120;
         const extSign = extDiff >= 0 ? "+" : "-";
-        const extRemainingText = extSign + minutesToTime(Math.abs(extDiff)) + " remaining";
+        const extRemainingText = extSign + minutesToTime(Math.abs(extDiff)) + " remaining" + (extDiff < 0 ? " — Not legal to fly!" : "");
 
         document.getElementById('extremaining').textContent = extRemainingText;
         document.getElementById('extremaining').style.color = extDiff >= 0 ? "blue" : "red";
@@ -1673,6 +1680,26 @@
         if (typeof updateSectorVisibility === "function") updateSectorVisibility();
     });
 
+
+    let deferredInstallPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredInstallPrompt = e;
+        document.getElementById('btn-install').style.display = 'block';
+    });
+    window.addEventListener('appinstalled', () => {
+        document.getElementById('btn-install').style.display = 'none';
+        deferredInstallPrompt = null;
+    });
+    async function installApp() {
+        if (!deferredInstallPrompt) return;
+        deferredInstallPrompt.prompt();
+        const { outcome } = await deferredInstallPrompt.userChoice;
+        if (outcome === 'accepted') {
+            document.getElementById('btn-install').style.display = 'none';
+        }
+        deferredInstallPrompt = null;
+    }
 
     // In this code we check if the browser supports Service Workers
     async function registerServiceWorker() {
